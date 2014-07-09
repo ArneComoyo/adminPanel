@@ -42,4 +42,4 @@ app.config(function ($routeProvider) {
         redirectTo: '/user'
       });
   })
-.constant('FIREBASE_URL', 'https://interns-grouper.firebaseio.com/');
+.constant('FIREBASE_URL', 'https://staging-grouper.firebaseio.com/');

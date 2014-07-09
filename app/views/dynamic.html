@@ -104,11 +104,13 @@
 
 <!-- ** MAIN CONTENT (search, table) ** -->
 <div class="container  add-space" ng-if="auth.user">
-  <!-- Search -->
   <div class="container">
+    <!-- Search -->
+    <!-- 
     <span id="simpleSearch">
       Filter: <input ng-model="searchValue" placeholder=" start typing to filter..."></input>
-    </span>
+    </span> -->
+    
     <!-- Modal triggers -->
     <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" ng-class="{disabled: selectedObjects.length === 0}">
       Delete <span class="glyphicon glyphicon-trash"/>

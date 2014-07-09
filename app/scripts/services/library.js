@@ -1,4 +1,4 @@
-app.factory('Library', function () {
+app.factory('Library', function (FIREBASE_URL) {
 
 	var library = {};
 
@@ -28,8 +28,12 @@ app.factory('Library', function () {
 		return (!!thing) ? thing.name : uppercaseFirst( key );
 	};
 
+	library.urlOfKeys = function(type) {
+		return FIREBASE_URL+'adminPanel/settings/dispProperties/'+type;
+	}
 
 
+	
 	// Fields
 	library.types = [
 		'user',
@@ -37,6 +41,7 @@ app.factory('Library', function () {
 		'event',
 		'chatroom'
 	];
+
 	var formattables = {
 		// events
 		eid: {

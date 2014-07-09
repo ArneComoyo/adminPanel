@@ -53,18 +53,15 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 	/* Intendet to be called from primary function */
 	loader.load = function(type, id) {
 		console.log('load');
-		var urlOfKeys = FIREBASE_URL+'adminUiSettings/properties/'+type;
 		var refAll = new Firebase(FIREBASE_URL+type);
 		var refOne = new Firebase(FIREBASE_URL+type+'/'+id);
-		var refShowKeys = new Firebase(urlOfKeys+'/show');
-		var refHideKeys = new Firebase(urlOfKeys+'/hide');
+		var refShowKeys = new Firebase(Library.urlOfKeys(type)+'/show');
+		var refHideKeys = new Firebase(Library.urlOfKeys(type)+'/hide');
 
-		var data;
-		var newData = function () {
-			// create new data = loader.data
-			data = createDataStructure();
-			loader.data = data;
-		};
+		// create new data = loader.data
+		var data = createDataStructure();
+		loader.data = data;
+
 
 		var insertRealValue = function(array, index, type, id) {
 			// CONCIDER meomisation
@@ -103,11 +100,13 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 		var formatProperty = function(formatted, key, value) {
 			// Look up proper value (may be key rather than value)
 
-			if (typeof value === 'string') {
-				formatted[key] = [{value: value}];
-			} else if (typeof value === 'object') {
+			if (typeof value === 'object') {
 				// assume value contains key value pairs, where keys are *id's
 				formatToArray(value, formatted[key] = [], key);
+
+			} else if (typeof value === 'string') {
+				formatted[key] = [{value: value}];
+
 			} else if (typeof value === 'number') {
 				if (key === 'when' || key === 'timeStamp')  {
 					formatted[key] = [{
@@ -115,8 +114,13 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 						unixTime: value
 					}];
 				}
+
+			} else if (typeof value === 'boolean') {
+				formatted[key] = [{value: value}];
+
 			} else {
-				formatted[key] = ' [TYPE ERROR] ('+(typeof value)+') : '+value;
+				formatted[key] = [{value: ' [TYPE ERROR] ('+(typeof value)+') : '+value }];
+
 			}
 		};
 
@@ -204,7 +208,6 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 			loadObjects();
 		};
 
-		newData();
 		refShowKeys.on('value', getKeys);
 	};
 

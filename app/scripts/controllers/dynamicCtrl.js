@@ -27,6 +27,7 @@
 		// Force load data (regardless of buffer) and bind it to the scope
 		DataLoader.load($scope.dataType, $scope.id);
 		$scope.data = DataLoader.data;
+		prepareKeySettings();
 	};
 
 
@@ -43,7 +44,7 @@
 		} else if (user) {
 			// user authenticated with Firebase
 			console.log('User ID: ' + user.uid + ', Provider: ' + user.provider);
-			$scope.setData();
+			$scope.forceReload();
 		} else {
 			// user is logged out
 			console.log('Not logged in');
@@ -163,37 +164,43 @@
 		}
 	};
 
-	var urlOfKeys = FIREBASE_URL+'adminUiSettings/properties/'+$scope.dataType;
-	var keyRef = new Firebase(urlOfKeys);
+	
 
 	// Get keys from firebase
-	keyRef.on('value', function(snap) {
-		var keys = snap.val();
-		$scope.keys = keys;
-		$scope.formattedKeys = {};
+	var prepareKeySettings = function()  {
 
-		if (!keys) {
-			console.log(urlOfKeys);
-			return;
-		}
+		var keyRef = new Firebase(Library.urlOfKeys($scope.dataType));
 
-		if (!$scope.keys.show) {
-			$scope.keys.show = [];
-		}
-		if (!$scope.keys.hide) {
-			$scope.keys.hide = [];
-		}
+		keyRef.on('value', function(snap) {
+			var keys = snap.val();
+			$scope.keys = keys;
+			$scope.formattedKeys = {};
 
-		var all = keys.show.concat(keys.hide);
-		for (var i = 0; i < all.length; i++) {
-			var key = all[i];
-			$scope.formattedKeys[ key ] = Library.readableKey( key );
-		}
-	});
-	// Save keys to firebase
-	$scope.keysToFirebase = function() {
-		keyRef.set($scope.keys);
+			if (!keys) {
+				console.log('Error: Nothing found at: ', Library.urlOfKeys($scope.dataType));
+				return;
+			}
+
+			if (!$scope.keys.show) {
+				$scope.keys.show = [];
+			}
+			if (!$scope.keys.hide) {
+				$scope.keys.hide = [];
+			}
+
+			var all = keys.show.concat(keys.hide);
+			for (var i = 0; i < all.length; i++) {
+				var key = all[i];
+				$scope.formattedKeys[ key ] = Library.readableKey( key );
+			}
+		});
+
+		// Save keys to firebase, called from HTML
+		$scope.keysToFirebase = function() {
+			keyRef.set($scope.keys);
+		};
 	};
+	prepareKeySettings();
 
 
 });
