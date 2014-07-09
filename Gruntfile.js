@@ -207,7 +207,7 @@ module.exports = function (grunt) {
         src: [
           '<%= yeoman.dist %>/scripts/{,*/}*.js',
           '<%= yeoman.dist %>/styles/{,*/}*.css',
-          '<%= yeoman.dist %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}',
+          //'<%= yeoman.dist %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}', // FIX: removed line
           '<%= yeoman.dist %>/styles/fonts/*'
         ]
       }
@@ -354,6 +354,12 @@ module.exports = function (grunt) {
           cwd: '.',
           src: 'bower_components/bootstrap-sass-official/vendor/assets/fonts/bootstrap/*',
           dest: '<%= yeoman.dist %>'
+	}, { // FIX: Added new rule to fix fonts
+	  expand: true,
+	  flatten: true,
+	  cwd: '<%= yeoman.app %>',
+	  dest: '<%= yeoman.dist %>',
+	  src: ['bower_components/bootstrap-sass-official/vendor/assets/fonts/*.*']
         }]
       },
       styles: {
