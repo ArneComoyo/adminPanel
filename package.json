@@ -2,6 +2,7 @@
   "name": "adminpanel",
   "version": "0.0.0",
   "dependencies": {
+    "express": "^4.5.1",
     "gzippo": "^0.2.0",
     "morgan": "^1.1.1"
   },
