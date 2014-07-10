@@ -5,12 +5,19 @@ app.factory('FirebaseHolder', function ($firebase, FIREBASE_URL) {
 	 Not surprisingly, holder is not defined.
 	 Renaming holder to something else.
 	 */
-	var cannotBeNamedHolderApparently = {};
+//	var smthElse = {};
+//
+//	smthElse.url = FIREBASE_URL;
+//	smthElse.ref = new Firebase(smthElse.url);
+//	smthElse.angularFire = new $firebase(smthElse.ref);
+//
+//	return smthElse;
 
-	cannotBeNamedHolderApparently.url = FIREBASE_URL;
-	cannotBeNamedHolderApparently.ref = new Firebase(cannotBeNamedHolderApparently.url);
-	cannotBeNamedHolderApparently.angularFire = new $firebase(cannotBeNamedHolderApparently.ref);
-
-	return cannotBeNamedHolderApparently;
+	// Different approach to fix problem
+	// return {
+	// 	url = FIREBASE_URL,
+	// 	ref = new Firebase(url),
+	// 	angularFire = new $firebase(ref)
+	// };
 
 });

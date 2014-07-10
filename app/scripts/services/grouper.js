@@ -1,14 +1,15 @@
 'use strict';
 var debug = false;
 
-app.factory('Grouper', function (FIREBASE_URL, $firebase, FirebaseHolder) {
+app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 	var url = FIREBASE_URL;
-	var ref = FirebaseHolder.ref;
+	var ref = new Firebase(url);
+	var angularFire = $firebase(ref);
 	var grouper = {};
 
 
 	grouper.deleteNotice = function (noticeId) { // all good
-		var notice = FirebaseHolder.angularFire.$child('notice')[noticeId];
+		var notice = angularFire.$child('notice')[noticeId];
 		console.log('deleting notice: ' + notice.$id);
 
 		remove('group', noticeId, notice.gid, 'noticeIds');
@@ -24,7 +25,7 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase, FirebaseHolder) {
 	};
 
 	grouper.deleteEvent = function (eventId) { // all good
-		var event = FirebaseHolder.angularFire.$child('event')[eventId];
+		var event = angularFire.$child('event')[eventId];
 		console.log('deleting event: ' + event['name']);
 		console.log(ref.child(eventId).toString());
 
@@ -52,7 +53,7 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase, FirebaseHolder) {
 	};
 
 	grouper.deleteUser = function (userId) { // does not clean up lastRead in chatroom and from in message. But should it?
-		var user = FirebaseHolder.angularFire.$child('user')[userId];
+		var user = angularFire.$child('user')[userId];
 		console.log('deleting user: ' + user.name);
 		console.log(ref.child(userId).toString());
 
@@ -143,7 +144,7 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase, FirebaseHolder) {
 	 * gruppen blir slettet. Spør Tor dobbeltnavn(Fredrik?) om hvordan dette gjøres.
 	 */
 	grouper.deleteGroup = function (groupId) { // all good
-		var group = FirebaseHolder.angularFire.$child('group')[groupId];
+		var group = angularFire.$child('group')[groupId];
 		console.log('deleting group: ' + group['name']);
 		console.log(ref.child(groupId).toString());
 
