@@ -207,7 +207,8 @@ module.exports = function (grunt) {
         src: [
           '<%= yeoman.dist %>/scripts/{,*/}*.js',
           '<%= yeoman.dist %>/styles/{,*/}*.css',
-          '<%= yeoman.dist %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}', // FIX attempt: removed line
+          '<%= yeoman.dist %>/images/{,*/}*.{png,jpg,jpeg,gif,webp,svg}', // FIX1 attempt: removed line
+          //'<%= yeoman.dist %>/styles/fonts/{,*/}*.{eot,ttf,woff}' // FIX2 Inserted this line, commented out the one below
           '<%= yeoman.dist %>/styles/fonts/*'
         ]
       }
@@ -238,6 +239,13 @@ module.exports = function (grunt) {
       css: ['<%= yeoman.dist %>/styles/{,*/}*.css'],
       options: {
         assetsDirs: ['<%= yeoman.dist %>','<%= yeoman.dist %>/images']
+        , patterns: { // FIX3 Added this whole object (named 'patterns')
+          css: [
+            [/(\/bower_components\/bootstrap\/dist\/fonts)/g, 'god help me', function(match) {
+              return match.replace('/bower_components/bootstrap/dist/fonts', '../fonts');
+            }]
+          ]
+        }
       }
     },
 
@@ -352,9 +360,9 @@ module.exports = function (grunt) {
         }, {
           expand: true,
           cwd: '.',
-          src: 'bower_components/bootstrap-sass-official/vendor/assets/fonts/bootstrap/*',
+          src: 'bower_components/bootstrap-sass-official/vendor/assets/fonts/bootstrap/*.*', // FIX2 added .* at end
           dest: '<%= yeoman.dist %>'
-	// }, { // FIX attempt: Added new rule to fix fonts
+	// }, { // FIX1 attempt: Added new rule to fix fonts
 	//   expand: true,
 	//   flatten: true,
 	//   cwd: '<%= yeoman.app %>',
