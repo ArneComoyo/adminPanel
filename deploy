@@ -1,0 +1,6 @@
+#!/bin/bash
+
+grunt build
+git add dist
+git commit -a -m "Auto deploy commit"
+git push heroku master
