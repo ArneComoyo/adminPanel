@@ -1,11 +1,16 @@
 app.factory('FirebaseHolder', function ($firebase, FIREBASE_URL) {
 	
-	var holder = {};
+	/*
+	 In minified file, 'return holder;' is the first line!(!?).
+	 Not surprisingly, holder is not defined.
+	 Renaming holder to something else.
+	 */
+	var cannotBeNamedHolderApparently = {};
 
-	holder.url = FIREBASE_URL;
-	holder.ref = new Firebase(holder.url);
-	holder.angularFire = new $firebase(holder.ref);
+	cannotBeNamedHolderApparently.url = FIREBASE_URL;
+	cannotBeNamedHolderApparently.ref = new Firebase(cannotBeNamedHolderApparently.url);
+	cannotBeNamedHolderApparently.angularFire = new $firebase(cannotBeNamedHolderApparently.ref);
 
-	return holder;
+	return cannotBeNamedHolderApparently;
 
 });
