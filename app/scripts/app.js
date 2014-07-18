@@ -30,6 +30,10 @@ app.config(function ($routeProvider) {
     //];
 
     $routeProvider
+      // .when('/:dataType/:id/:childId', {
+      //   templateUrl: 'views/dynamic.html',
+      //   controller: 'DynamicCtrl'
+      // })
       .when('/:dataType/:id', {
         templateUrl: 'views/dynamic.html',
         controller: 'DynamicCtrl'
@@ -42,4 +46,6 @@ app.config(function ($routeProvider) {
         redirectTo: '/user'
       });
   })
+// .constant('FIREBASE_URL', 'https://interns-grouper.firebaseio.com/');
 .constant('FIREBASE_URL', 'https://staging-grouper.firebaseio.com/');
+//.constant('FIREBASE_URL', 'https://production-grouper.firebaseio.com/');

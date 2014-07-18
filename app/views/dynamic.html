@@ -102,7 +102,7 @@
 </div>
 
 
-<!-- ** MAIN CONTENT (search, table) ** -->
+<!-- ** MAIN CONTENT (search + table) ** -->
 <div class="container  add-space" ng-if="auth.user">
   <div class="container">
     <!-- Search -->
@@ -133,22 +133,30 @@
 
         <!-- header rows-->
         <tr>
-          <th><a href="" bo-click="setSortingPredicate('')">^</a></th>
+          <th></th> <!-- selection column -->
+          <th><a href="" ng-click="setSortingPredicate('')">Firebase</a></th>
           <th bindonce ng-repeat="key in data.keys.show" style="white-space:nowrap;">
-            <a href="" bo-click="setSortingPredicate(key)">
+            <a href="" ng-click="setSortingPredicate(key)">
               {{data.formattedKeys.show[key]}}
             </a>
+              <span ng-if="predicate===key">
+                <span ng-if="!reverse" class="glyphicon glyphicon-sort-by-attributes"/>
+                <span ng-if="reverse" class="glyphicon glyphicon-sort-by-attributes-alt"/>
+              </span>
           </th>
         </tr>
 
-        <!-- data rows -->
-        <tr bindonce ng-repeat="object in data.objects | orderBy:priority | filter:searchValue | orderBy:predicate:reverse"
+        <!-- data rows -->  <!-- | orderFilter  -->
+        <tr bindonce ng-repeat="object in data.objects | filter:searchValue "
         class="default" ng-class="{'selected': isSelected($index)}">
 
-          <!-- cell: row selection -->
+          <!-- row selection -->
           <td ng-click="toggleSelectedRow($index, object.id)">
-            <input type="checkbox"
-            ng-checked="isSelected($index)">
+            <input type="checkbox" ng-checked="isSelected($index)">
+          </td>
+          <!-- link to firebase -->
+          <td>
+            <a href="{{firebaseTypeUrl+object.id}}"><span class="label label-warning">Firebase</span></a>
           </td>
 
           <!-- data cells -->

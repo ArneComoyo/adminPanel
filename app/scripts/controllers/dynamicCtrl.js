@@ -7,7 +7,7 @@
  * # DynamicCtrl
  * Controller of the adminPanel
  */
- app.controller('DynamicCtrl', function ($scope, $routeParams, $firebaseSimpleLogin, FIREBASE_URL, Library, DataLoader, Grouper) {
+ app.controller('DynamicCtrl', function ($scope, $routeParams, $firebaseSimpleLogin, $filter, FIREBASE_URL, Library, DataLoader, Grouper) {
 
 
  	$scope.types = Library.types;
@@ -15,7 +15,11 @@
 	// SET DATATYPE
 	// Get information from URL
 	$scope.dataType = $routeParams.dataType;
-	$scope.id = $routeParams.id; // id may be undefined
+	$scope.id = $routeParams.id; // may be undefined
+	$scope.childId = $routeParams.childId; // may be undefined
+	console.log($scope.childId);
+
+	$scope.firebaseTypeUrl = FIREBASE_URL+$scope.dataType+'/';
 
 	$scope.setData = function() {
 		// Get data and bind it to the scope
@@ -43,7 +47,7 @@
 			console.log('Create an entry with the key "github:<your github id>". Find your github id here: http://caius.github.io/github_id/');
 		} else if (user) {
 			// user authenticated with Firebase
-			console.log('User ID: ' + user.uid + ', Provider: ' + user.provider);
+			console.log('User UID: ' + user.uid);
 			$scope.forceReload();
 		} else {
 			// user is logged out
@@ -78,6 +82,7 @@
 			$scope.reverse = false;
 			$scope.predicate = predicate;
 		}
+		$scope.data.objects = $filter('mySortFilter')($scope.data.objects, $scope.predicate, $scope.reverse);
 	};
 
 

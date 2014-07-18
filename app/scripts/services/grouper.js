@@ -135,7 +135,7 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 		 */
 		console.log('	Deactivating user '+user.name);
 		if(!debug)
-			ref.child('user').child(userId).child('deactivated').set('T');
+			ref.child('user').child(userId).child('deactivated').set('true');
 	};
 	
 

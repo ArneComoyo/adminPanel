@@ -7,7 +7,10 @@ app.factory('Library', function (FIREBASE_URL) {
 	library.primaryPropertyOf = function(type) {
 		if (type === 'chatroom') {
 			return 'topic';
+		} else if (type === 'message') {
+			return 'text';
 		}
+
 		return 'name'; // TODO correct this shit
 	};
 
@@ -79,7 +82,7 @@ app.factory('Library', function (FIREBASE_URL) {
 			name: 'Notices',
 			objectType: 'notice'
 		},
-		// members
+		// users
 		member: {
 			name: 'Members',
 			objectType: 'user'
@@ -99,6 +102,15 @@ app.factory('Library', function (FIREBASE_URL) {
 		admin: {
 			name: 'Admins',
 			objectType: 'user'
+		},
+		// messages
+		lastMessage: {
+			name: 'Last Message',
+			objectType: 'message'
+		},
+		lastRead: {
+			name: 'Last Read',
+			objectType: 'readReport'
 		}
 	};
 
