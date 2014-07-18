@@ -28,7 +28,7 @@ app.filter('mySortFilter', function() {
 
 				var 	diff = aLen - bLen;
 
-				// if equal number of elements, sort by value of first element (e.g. string value of user.name)
+				// if equal number of elements, sort by value of first element (i.e. string value of user.name)
 				if (diff === 0) {
 					diff = pa[0].value > pb[0].value
 					? 1

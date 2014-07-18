@@ -193,7 +193,7 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 					}
 
 					if (key === Library.primaryPropertyOf(type)) {
-						// This property is the primary property (e.g. 'name' for user)
+						// This property is the primary property (i.e. 'name' for user)
 						// put a ref on the object
 						formatted[key][0].ref = getRef(type, parentId);
 					}
