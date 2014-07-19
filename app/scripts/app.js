@@ -30,10 +30,10 @@ app.config(function ($routeProvider) {
     //];
 
     $routeProvider
-      // .when('/:dataType/:id/:childId', {
-      //   templateUrl: 'views/dynamic.html',
-      //   controller: 'DynamicCtrl'
-      // })
+      .when('/:dataType/:id/:childId', {
+        templateUrl: 'views/dynamic.html',
+        controller: 'DynamicCtrl'
+      })
       .when('/:dataType/:id', {
         templateUrl: 'views/dynamic.html',
         controller: 'DynamicCtrl'

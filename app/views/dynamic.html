@@ -106,10 +106,12 @@
 <div class="container  add-space" ng-if="auth.user">
   <div class="container">
     <!-- Search -->
-    <!-- 
     <span id="simpleSearch">
-      Filter: <input ng-model="searchValue" placeholder=" start typing to filter..."></input>
-    </span> -->
+      Filter: <input ng-model="searchValue" placeholder=" insert text..."></input>
+      <button class="btn btn-info" ng-click="search(searchValue)"><!-- ng-class="{disabled: !searchValue}"  -->
+        Enable filtering <span class="glyphicon glyphicon-search"/>
+      </button>
+    </span>
     
     <!-- Modal triggers -->
     <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" ng-class="{disabled: selectedObjects.length === 0}">

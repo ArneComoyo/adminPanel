@@ -10,31 +10,6 @@
  app.controller('DynamicCtrl', function ($scope, $routeParams, $firebaseSimpleLogin, $filter, FIREBASE_URL, Library, DataLoader, Grouper) {
 
 
- 	$scope.types = Library.types;
-
-	// SET DATATYPE
-	// Get information from URL
-	$scope.dataType = $routeParams.dataType;
-	$scope.id = $routeParams.id; // may be undefined
-	$scope.childId = $routeParams.childId; // may be undefined
-	console.log($scope.childId);
-
-	$scope.firebaseTypeUrl = FIREBASE_URL+$scope.dataType+'/';
-
-	$scope.setData = function() {
-		// Get data and bind it to the scope
-		DataLoader.get($scope.dataType, $scope.id);
-		$scope.data = DataLoader.data;
-	};
-
-	$scope.forceReload = function() {
-		// Force load data (regardless of buffer) and bind it to the scope
-		DataLoader.load($scope.dataType, $scope.id);
-		$scope.data = DataLoader.data;
-		prepareKeySettings();
-	};
-
-
 	// LOGIN
 	$scope.test = function() {
 		console.log('Scope.auth', $scope.auth);
@@ -63,11 +38,54 @@
 	$scope.auth = $firebaseSimpleLogin(ref);
 	// This line will run authResponse() upon creation and when $scope.auth.$login() is called
 	new FirebaseSimpleLogin(ref, authResponse);
+
+
+
+	// PROVIDE DATA
+	// Types that are linked to in html (i.e. user, group, etc.)
+ 	$scope.types = Library.types;
+
+	// Get information from URL
+	$scope.dataType = $routeParams.dataType;
+	$scope.id = $routeParams.id; // may be undefined
+	$scope.childId = $routeParams.childId; // may be undefined
+
+	$scope.firebaseTypeUrl = FIREBASE_URL+$scope.dataType+'/';
+
+	$scope.setData = function() {
+		// Get data and bind it to the scope
+		DataLoader.get($scope.dataType, $scope.id);
+		$scope.data = DataLoader.data;
+	};
+
+	$scope.forceReload = function() {
+		// Force load data (regardless of buffer) and bind it to the scope
+		if (typeof $scope.id !== 'undefined' 
+			&& typeof $scope.childId !== 'undefined') {
+			var id = $scope.id+'/'+$scope.childId;
+		} else {
+			var id = $scope.id;
+		}
+		DataLoader.load($scope.dataType, id);
+		$scope.data = DataLoader.data;
+		prepareKeySettings();
+	};
 	
 
 
 	// FILTER / SEARCH
-	$scope.searchValue;
+	var enabled = false;
+	$scope.search = function(searchValue) {
+		// enabled = !enabled;
+		// if (enabled) {
+			$scope.data = DataLoader.data;
+			if (!!searchValue)  {
+				$scope.data.objects = $filter('mySearchFilter')(DataLoader.data, searchValue);	
+			}
+		// } else {
+		// 	$scope.data = $scope.data;
+		// }
+	};
 
 	// SORTING
 	$scope.predicate = '';
@@ -182,7 +200,7 @@
 			$scope.formattedKeys = {};
 
 			if (!keys) {
-				console.log('Error: Nothing found at: ', Library.urlOfKeys($scope.dataType));
+				console.log('Keys not found at: ', Library.urlOfKeys($scope.dataType));
 				return;
 			}
 

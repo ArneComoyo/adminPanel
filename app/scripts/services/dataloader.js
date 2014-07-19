@@ -1,3 +1,4 @@
+'use strict';
 app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 	var dataType = '';	// private variable
 
@@ -269,14 +270,30 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 				refAll.on('value', function(snap) {
 					data.keys.show = [];
 					var all = snap.val();
-					angular.forEach(all, function(object, key) {
-						angular.forEach(object, function(value, key) {
-							if (data.keys.show.indexOf(key) === -1) {
-								data.keys.show.push(key);
-								data.formattedKeys.show[key] = Library.readableKey(key);
-							}
+					if (type === 'message') {
+						// nested structure
+						angular.forEach(all, function(room) {
+							angular.forEach(room, function(message) {
+								angular.forEach(message, function(value, key) {
+									if (data.keys.show.indexOf(key) === -1) {
+										data.keys.show.push(key);
+										data.formattedKeys.show[key] = Library.readableKey(key);
+									}
+								});
+							});
 						});
-					});
+
+					} else {
+						// regular structure
+						angular.forEach(all, function(object, key) {
+							angular.forEach(object, function(value, key) {
+								if (data.keys.show.indexOf(key) === -1) {
+									data.keys.show.push(key);
+									data.formattedKeys.show[key] = Library.readableKey(key);
+								}
+							});
+						});
+					}
 					refShowKeys.set(data.keys.show);
 					console.log('Keys generated and written to firebase');
 

@@ -1,3 +1,4 @@
+'use strict';
 app.factory('Library', function (FIREBASE_URL) {
 
 	var library = {};

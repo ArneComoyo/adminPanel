@@ -1,3 +1,4 @@
+'use strict';
 app.filter('mySortFilter', function() {
 
 	// ** Filter function **/
