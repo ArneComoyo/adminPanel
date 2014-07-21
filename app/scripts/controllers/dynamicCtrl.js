@@ -23,12 +23,10 @@
 		} else if (user) {
 			// user authenticated with Firebase
 			console.log('User UID: ' + user.uid);
-			$scope.forceReload();
+			$scope.setData();
 		} else {
-			// user is logged out
+			// user is not logged in
 			console.log('Not logged in');
-			//$window.location.href = '#/login';
-			// $scope.$apply(function() { $location.path('/login')});
 		}
 	};
 
@@ -41,50 +39,57 @@
 
 
 
-	// PROVIDE DATA
-	// Types that are linked to in html (i.e. user, group, etc.)
- 	$scope.types = Library.types;
 
+
+	// PROVIDE DATA
 	// Get information from URL
 	$scope.dataType = $routeParams.dataType;
 	$scope.id = $routeParams.id; // may be undefined
 	$scope.childId = $routeParams.childId; // may be undefined
+	// Fields used only by HTML
+ 	$scope.types = Library.types;
+ 	$scope.firebaseTypeUrl = FIREBASE_URL+$scope.dataType+'/';
 
-	$scope.firebaseTypeUrl = FIREBASE_URL+$scope.dataType+'/';
-
-	$scope.setData = function() {
-		// Get data and bind it to the scope
-		DataLoader.get($scope.dataType, $scope.id);
-		$scope.data = DataLoader.data;
-	};
-
-	$scope.forceReload = function() {
-		// Force load data (regardless of buffer) and bind it to the scope
+	// Helper methods
+	var getId = function() {
 		if (typeof $scope.id !== 'undefined' 
 			&& typeof $scope.childId !== 'undefined') {
 			var id = $scope.id+'/'+$scope.childId;
 		} else {
 			var id = $scope.id;
 		}
-		DataLoader.load($scope.dataType, id);
-		$scope.data = DataLoader.data;
+		return id;
+	};
+
+	var bindData = function() {
+		$scope.data = {};
+		$scope.data.objects = DataLoader.data.objects,
+		$scope.data.keys = DataLoader.data.keys
+		$scope.data.formattedKeys = DataLoader.data.formattedKeys;
+	};
+
+	// Setters
+	$scope.setData = function() {
+		// Get data and bind it to the scope
+		DataLoader.get($scope.dataType, getId());
+		//$scope.data = DataLoader.data;
+		bindData();
+	};
+
+	$scope.forceReload = function() {
+		// Force load data (regardless of buffer) and bind it to the scope
+		DataLoader.load($scope.dataType, getId());
+		// $scope.data = DataLoader.data;
+		bindData();
 		prepareKeySettings();
 	};
 	
 
 
+
 	// FILTER / SEARCH
-	var enabled = false;
 	$scope.search = function(searchValue) {
-		// enabled = !enabled;
-		// if (enabled) {
-			$scope.data = DataLoader.data;
-			if (!!searchValue)  {
-				$scope.data.objects = $filter('mySearchFilter')(DataLoader.data, searchValue);	
-			}
-		// } else {
-		// 	$scope.data = $scope.data;
-		// }
+		$scope.data.objects = $filter('mySearchFilter')(DataLoader.data.objects, searchValue);
 	};
 
 	// SORTING
@@ -114,10 +119,7 @@
 		if (index === -1) {
 			// Select
 			selectedRows.push(rowNo);
-			$scope.selectedObjects.push({
-				id: objectId,
-				name: $scope.data.objects[objectId][ Library.primaryPropertyOf($scope.dataType) ][0].value
-			});
+			$scope.selectedObjects.push($scope.data.objects[objectId] );
 
 		} else {
 			// Deselect
@@ -135,25 +137,25 @@
 		angular.forEach($scope.selectedObjects, function (object) {
 			switch($scope.dataType) {
 				case 'event':
-				Grouper.deleteEvent(object.id);
-				break;
+					Grouper.deleteEvent(object.id);
+					break;
 				case 'user':
-				Grouper.deleteUser(object.id);
-				break;
+					Grouper.deleteUser(object.id);
+					break;
 				case 'group':
-				Grouper.deleteGroup(object.id);
-				break;
+					Grouper.deleteGroup(object.id);
+					break;
 				case 'notice':
-				Grouper.deleteNotice(object.id);
-				break;
+					Grouper.deleteNotice(object.id);
+					break;
 				default:
-				console.log('Could not delete: Type unknown! Wtf? ');
+					console.log('Could not delete: Type unknown! Wtf? ');
 			}
 			delete $scope.data.objects[object.id];
 			
-			selectedRows = [];
-			$scope.selectedObjects = [];
 		});
+		selectedRows = [];
+		$scope.selectedObjects = [];
 	};
 
 

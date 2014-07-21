@@ -104,25 +104,65 @@
 
 <!-- ** MAIN CONTENT (search + table) ** -->
 <div class="container  add-space" ng-if="auth.user">
+
   <div class="container">
-    <!-- Search -->
-    <span id="simpleSearch">
-      Filter: <input ng-model="searchValue" placeholder=" insert text..."></input>
-      <button class="btn btn-info" ng-click="search(searchValue)"><!-- ng-class="{disabled: !searchValue}"  -->
-        Enable filtering <span class="glyphicon glyphicon-search"/>
-      </button>
-    </span>
-    
-    <!-- Modal triggers -->
-    <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" ng-class="{disabled: selectedObjects.length === 0}">
-      Delete <span class="glyphicon glyphicon-trash"/>
-    </button>
-    <button class="btn btn-info" data-toggle="modal" data-target="#settingsModal">
-      Settings <span class="glyphicon glyphicon-wrench"/>
-    </button>
+        <!-- Search thingy -->
+        <form class="navbar-form">
+          <span class="input-group" id="simpleSearch">
+            <input type="text" class ="form-control" ng-model="searchValue" placeHolder="instert text..."></input>
+            <span class="input-group-btn">
+              <button class="btn btn-info" ng-click="search(searchValue)">
+                Search <span class="glyphicon glyphicon-search"/>
+              </button>
+            </span>
+          </span>
+        </form>
+
+        <!-- Modal triggers -->
+        <form class="navbar-form">
+          <div class="form-group">
+            <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" 
+                        ng-class="{disabled: selectedObjects.length === 0}">
+              Delete <span class="glyphicon glyphicon-trash"/>
+            </button>
+            <button class="btn btn-info" data-toggle="modal" data-target="#settingsModal">
+              Settings <span class="glyphicon glyphicon-wrench"/>
+            </button>
+          </div>
+        </form>
   </div>
+<!-- 
+  <div class="navbar navbar-default">
+    <div class="container-fluid">
+      <div class="collapse navbar-collapse">
+        Search thingy
+        <form class="navbar-form">
+          <span class="input-group" id="simpleSearch">
+            <input type="text" class ="form-control" ng-model="searchValue" placeHolder="instert text..."></input>
+            <span class="input-group-btn">
+              <button class="btn btn-info" ng-click="search(searchValue)">
+                Search <span class="glyphicon glyphicon-search"/>
+              </button>
+            </span>
+          </span>
+        </form>
 
-
+        Modal triggers
+        <form class="navbar-form">
+          <div class="form-group">
+            <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" 
+                        ng-class="{disabled: selectedObjects.length === 0}">
+              Delete <span class="glyphicon glyphicon-trash"/>
+            </button>
+            <button class="btn btn-info" data-toggle="modal" data-target="#settingsModal">
+              Settings <span class="glyphicon glyphicon-wrench"/>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  -->
 
 
 
@@ -148,8 +188,8 @@
           </th>
         </tr>
 
-        <!-- data rows -->  <!-- | orderFilter  -->
-        <tr bindonce ng-repeat="object in data.objects | filter:searchValue "
+        <!-- data rows -->  <!-- | orderFilter  --><!--  | mySearchFilter:searchValue " -->
+        <tr bindonce ng-repeat="object in data.objects"
         class="default" ng-class="{'selected': isSelected($index)}">
 
           <!-- row selection -->

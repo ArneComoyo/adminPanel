@@ -178,10 +178,14 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 
 
 					} else if (typeof value === 'number') {
-						if (key === 'when' || key === 'timeStamp')  {
+						if (key === 'when' || 'timeStamp' || 'lastLogin')  {
 							formatted[key] = [{
 								value: $filter('date')(value, dateFormat), 
 								unixTime: value
+							}];
+						} else {
+							formatted[key] = [{
+								value: value
 							}];
 						}
 
