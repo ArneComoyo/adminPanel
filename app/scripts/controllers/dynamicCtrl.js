@@ -127,6 +127,14 @@
 	$scope.html.searchValue;
 	$scope.filter.searchValue;
 	/* Helper fuction */
+	$scope.delayedUpdateHtmlSearchValue = function() {
+		setTimeout(function() {
+			$scope.updateHtmlSearchValue();
+                    if($scope.$root.$$phase !== '$apply') { // check if $apply phase is already running
+                        $scope.$apply();
+                    }
+		}, 200);
+	};
 	$scope.updateHtmlSearchValue = function() {
 		$scope.html.searchValue = typeof $scope.filter.searchValue ==='object' ? '<advanced>' : $scope.filter.searchValue;
 		console.log('Html search value: ', $scope.html.searchValue);

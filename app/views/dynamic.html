@@ -97,6 +97,28 @@
         <h4>Search by one or more specific fields</h4>
         <form class="form-vertical" ng-repeat="key in keys.show">
         <fieldset>
+
+          <br>
+          <!-- /input-group -->
+           <div class="input-group">
+            <span class="input-group-addon">{{formattedKeys[key]}}</span>
+            <input type="text" class="form-control" ng-model="searchObject[key]"/>
+            <div class="input-group-btn">
+              <button class="btn" ng-click="search(searchObject)">
+                <span class="glyphicon glyphicon-search"/>
+              </button>
+            </div>
+
+          </fieldset>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-warning" ng-click="searchObject={}; search(searchObject)">Clear <span class="glyphicon glyphicon-remove"/></button>
+        <button class="btn btn-info" ng-click="search(searchObject)">Search <span class="glyphicon glyphicon-search"/></button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- 
           <div class="control-group">
             <label class="control-label" for="appendedtext">{{formattedKeys[key]}}</label>
@@ -112,27 +134,6 @@
             </div>
           </div>
  -->
-          <br>
-          <div class="input-group">
-            <span class="input-group-addon" ng-bind="formattedKeys[key]"/>
-            <input type="text" class="form-control" ng-model="searchObject[key]">
-            <div class="input-group-btn">
-              <button class="btn" ng-click="search(searchObject)">
-                <span class="glyphicon glyphicon-search"/>
-              </button>
-            </div>
-          </div>
-
-          </fieldset>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-warning" ng-click="searchObject={}; search(searchObject)">Clear <span class="glyphicon glyphicon-remove"/></button>
-        <button class="btn btn-info" ng-click="search(searchObject)">Search <span class="glyphicon glyphicon-search"/></button>
-      </div>
-    </div>
-  </div>
-</div>
 
 
 
@@ -152,7 +153,7 @@
         <!-- Search thingy -->
         <form class="navbar-form">
           <span class="input-group" id="simpleSearch">
-            <input type="text" class ="form-control" ng-model="html.searchValue" placeHolder="Search phrase" ng-blur="updateHtmlSearchValue()"/>
+            <input type="text" class ="form-control" ng-model="html.searchValue" placeHolder="Search phrase" ng-blur="delayedUpdateHtmlSearchValue()"/>
             <!-- ng-blur="html.searchValue = typeOf(filter.searchValue) ==='object' ? '<advanced>' : filter.searchValue"/> -->
             <div class="input-group-btn">
               <button class="btn btn-info" ng-click="search(html.searchValue)">
