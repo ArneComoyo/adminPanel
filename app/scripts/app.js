@@ -48,4 +48,4 @@ app.config(function ($routeProvider) {
   })
 // .constant('FIREBASE_URL', 'https://interns-grouper.firebaseio.com/');
 // .constant('FIREBASE_URL', 'https://staging-grouper.firebaseio.com/');
-.constant('FIREBASE_URL', 'https://production-grouper.firebaseio.com/');
+.constant('FIREBASE_URL', 'https://test-grouper.firebaseio.com/');  // Production, obviously
