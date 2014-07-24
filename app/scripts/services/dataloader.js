@@ -68,29 +68,22 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 		// containing values specific to the object that is formatted.
 		var formatObject = function(original, formatted, id) {
 
-			// Parent id, e.g. the id of object that is formatted.
-			// The object to be formatted contains child obejcts, hence parent id.
 			var parentId = id;
+			var objectType = type;
 
 			// Finds correct firebase reference.
 			// Used when an object property is a reference to another object in firebase.
 			var getRef = function(type, id) {
-				var ref;
-
-				if (type === 'message') {
-					// CONCIDER: If showing messages, must be structured differently. Perhaps id = rid+'/'+mid?
-					ref = type+'/'+parentId+'/'+id;
-				} else {
-					ref = type+'/'+id;
-				}
-				return ref;
-			}
+				if (type === 'message')
+					return type+'/'+parentId+'/'+id;
+				else
+					return type+'/'+id;
+			};
 
 			// Inserts object containing a readable value, and a reference to the object (in firebase)
 			// Used when an object property contains a list of references to other objects.
 			var insertFormattedReference = function(array, index, type, id) {
 				var ref = getRef(type, id);
-
 				var url = FIREBASE_URL+ref;
 				var primary = Library.primaryPropertyOf(type);
 
@@ -178,7 +171,7 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 
 
 					} else if (typeof value === 'number') {
-						if (key === 'when' || 'timeStamp' || 'lastLogin')  {
+						if (key === 'when' || key === 'timeStamp' || key === 'lastLogin') {
 							formatted[key] = [{
 								value: $filter('date')(value, dateFormat), 
 								unixTime: value
@@ -200,21 +193,79 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 					if (key === Library.primaryPropertyOf(type)) {
 						// This property is the primary property (i.e. 'name' for user)
 						// put a ref on the object
-						formatted[key][0].ref = getRef(type, parentId);
+						formatted[key][0].ref = type+'/'+id;
 					}
-
 				}
 			};
 
-
+			// Format and add properties found on the original object
 			angular.forEach(original, function(value, key){
 				if (data.keys.show.indexOf(key) > -1) {
 					formatProperty(formatted, key, value);
 				}
 			});
+
+			// Add remote properties, e.g. chatroom has messages stored in 'message', not within $chatroom
+			var addRemoteProperties = function() {
+				var remoteProperties = Library.remoteProperties(type);
+				if (!!remoteProperties) {
+					for (var i = 0; i < remoteProperties.length; i++) {
+						var key = remoteProperties[i];
+
+						if (data.keys.show.indexOf(key) > -1) {
+							var remoteType = Library.typeOf(key);
+
+							var ref = new Firebase(FIREBASE_URL+remoteType+'/'+id);
+							ref.on('value', function(snap) {
+								formatToArray(snap.val(), formatted[key] = [], key);
+							});
+						}
+					}
+				}
+			} ();
+
+			// Add generted properties, e.g. 'name' of chatroom is the list of members in it.
+			var addGeneratedProperties = function () {
+				if (type === 'chatroom') {
+					var genProp = 'name';
+					if (data.keys.show.indexOf(genProp) > -1) {
+						formatted[genProp] = [{
+							value: 'Chatroom: ',
+							ref: type+'/'+id
+						}];
+						var hasMembers = false;
+						if (!!original.gid) {
+							hasMembers = true;
+							var url2 = FIREBASE_URL+'group/'+Object.keys(original.gid)[0]+'/name';
+							var grref = new Firebase(url2);
+							grref.on('value', function(snap) {
+								formatted[genProp][0].value += '{'+snap.val()+'}';
+							});
+						}
+						if (!!original.uid) {
+							hasMembers = true;
+							var keys = Object.keys(original.uid);
+							var read = 0;
+							for (var i = 0; i < keys.length; i++) {
+								var uid = keys[i];
+								var memref = new Firebase(FIREBASE_URL+'user/'+uid+'/name');
+								memref.on('value', function(snap) {
+									var append = (++read < keys.length)
+													? ', '
+													: '.';
+									formatted[genProp][0].value += snap.val()+append;
+								});
+							}
+						}
+						if (!hasMembers) {
+							formatted[genProp][0].value += 'No members!';
+						}
+					}
+				}
+			} ();
 		};
 
-		var loadSingleObject = function () {
+		var loadSingleObject = function() {
 			refOne.on('value', function(snap) {
 				var object = snap.val();
 				var formatted = { id: id };

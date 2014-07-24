@@ -1,44 +1,35 @@
 <div class="container">
-  <!-- <div class="header"> -->
+<!-- Navigation -->
   <ul class="nav nav-pills pull-left" role="tablist">
     <li ng-repeat="type in types" ng-class="{active: dataType === type}">
       <a ng-href="#/{{type}}" ng-class="{active: dataType === type}">{{type}}</a>
-      <!-- 
-      <a ng-if="dataType !== type" ng-href="#/{{type}}">{{type}}</a>
-      <a ng-if="dataType === type" ng-href="" ng-click="forceReload()" class="active">{{type}} <span class="glyphicon glyphicon-refresh"/></a>
-       -->      
     </li>
     <li><a ng-href="" ng-click="forceReload()"><span class="glyphicon glyphicon-refresh"/></a></li>
   </ul>
-  <!-- login -->
-  <ul id="login" class="nav nav-pills pull-right">
-    <!-- <li ng-show="auth.user"><span>{{auth.user.uid}} | <a href="" ng-click="auth.$logout()">Logout</a></span></li> -->
-    <li ng-show="auth.user"><a ng-click="auth.$logout()">{{auth.user.uid}} | Logout</a></li>
-    <!-- <li ng-hide="auth.user"><a href="" ng-click="auth.$login('github')">Login with github</a></li> -->
-    <li ng-hide="auth.user"><a class="btn btn-warning" ng-click="auth.$login('github')">Login with github</a></li>
 
-    <!-- <li><button class="btn btn-primary" ng-click="test()">TEST</button></li> -->
+  <!-- Login -->
+  <ul id="login" class="nav nav-pills pull-right">
+    <li ng-show="auth.user"><a ng-click="auth.$logout()">{{auth.user.uid}} | Logout</a></li>
+    <li ng-hide="auth.user"><a class="btn btn-warning" ng-click="auth.$login('github')">Login with github</a></li>
   </ul>
-  <!-- Title -->
-    <!-- <h3 class="text-muted">Admin Panel</h3>
-  </div> -->
 </div>
 
+<!-- <input class="text" ng-model="html.searchValue"/> -->
 
 
-
-
-<!-- MODAL FOR SETTINGS -->
+<!-- ** MODALS ** -->
+<!-- Modal for settings -->
 <div class="modal fade" id="settingsModal">
   <div class="modal-dialog">
     <div class="modal-content">
       <!-- modal header -->
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title">Show, hide or order the displayed properties</h4>
+        <h3 class="modal-title">Settings</h3>
       </div>
       <!-- Toggle which properties to display -->
       <div class="modal-body">
+        <h4>Show, hide or order the displayed properties</h4>
         <ol class="list-group">
           <li class="list-group-item list-group-item-success" ng-repeat="key in keys.show">
 
@@ -72,19 +63,18 @@
   </div>
 </div>
 
-
 <!-- Modal for deleting -->
 <div class="modal fade" id="deleteModal">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
         <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
-        <h4 class="modal-title">Delete</h4>
+        <h3 class="modal-title">Delete</h3>
       </div>
       <div class="modal-body">
-        <p>Do you want to delete the following {{dataType}}s?</p>
+        <h4>Do you want to delete the following {{dataType}}s?</h4>
         <ol>
-          <li ng-repeat="object in selectedObjects" style="text-align:left">{{object.name}}</li>
+          <li ng-repeat="object in selectedObjects" style="text-align:left">{{object.name[0].value}}</li>
         </ol>
       </div>
       <div class="modal-footer">
@@ -95,6 +85,56 @@
   </div>
 </div>
 
+<!-- Modal for advanced search -->
+<div class="modal fade" id="advancedSearchModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+        <h3 class="modal-title">Advanced search</h3>
+      </div>
+      <div class="modal-body" ng-init="searchObject={}">
+        <h4>Search by one or more specific fields</h4>
+        <form class="form-vertical" ng-repeat="key in keys.show">
+        <fieldset>
+<!-- 
+          <div class="control-group">
+            <label class="control-label" for="appendedtext">{{formattedKeys[key]}}</label>
+            <div class="controls">
+                <div class="input-group">
+                  <input type="text" class="form-control" ng-model="searchObject[key]">
+                  <div class="input-group-btn">
+                    <button class="btn" ng-click="search(searchObject)">
+                      <span class="glyphicon glyphicon-search"/>
+                    </button>
+                  </div>
+                </div>
+            </div>
+          </div>
+ -->
+          <br>
+          <div class="input-group">
+            <span class="input-group-addon" ng-bind="formattedKeys[key]"/>
+            <input type="text" class="form-control" ng-model="searchObject[key]">
+            <div class="input-group-btn">
+              <button class="btn" ng-click="search(searchObject)">
+                <span class="glyphicon glyphicon-search"/>
+              </button>
+            </div>
+          </div>
+
+          </fieldset>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-warning" ng-click="searchObject={}; search(searchObject)">Clear <span class="glyphicon glyphicon-remove"/></button>
+        <button class="btn btn-info" ng-click="search(searchObject)">Search <span class="glyphicon glyphicon-search"/></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
 
 <!-- Login prompt -->
 <div class="container add-space" ng-if="!auth.user">
@@ -102,19 +142,26 @@
 </div>
 
 
-<!-- ** MAIN CONTENT (search + table) ** -->
+
+<!-- ** MAIN CONTENT ** -->
 <div class="container  add-space" ng-if="auth.user">
 
+
+  <!-- ** USER INPUT ** -->
   <div class="container">
         <!-- Search thingy -->
         <form class="navbar-form">
           <span class="input-group" id="simpleSearch">
-            <input type="text" class ="form-control" ng-model="searchValue" placeHolder="instert text..."></input>
-            <span class="input-group-btn">
-              <button class="btn btn-info" ng-click="search(searchValue)">
+            <input type="text" class ="form-control" ng-model="html.searchValue" placeHolder="Search phrase" ng-blur="updateHtmlSearchValue()"/>
+            <!-- ng-blur="html.searchValue = typeOf(filter.searchValue) ==='object' ? '<advanced>' : filter.searchValue"/> -->
+            <div class="input-group-btn">
+              <button class="btn btn-info" ng-click="search(html.searchValue)">
                 Search <span class="glyphicon glyphicon-search"/>
               </button>
-            </span>
+              <button type="button" class="btn btn-info" data-toggle="modal" data-target="#advancedSearchModal">
+                <span class="glyphicon glyphicon-list-alt"/>
+              </button>
+            </div>
           </span>
         </form>
 
@@ -122,7 +169,7 @@
         <form class="navbar-form">
           <div class="form-group">
             <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" 
-                        ng-class="{disabled: selectedObjects.length === 0}">
+                        ng-class="{disabled: nofSelectedObjects() === 0}">
               Delete <span class="glyphicon glyphicon-trash"/>
             </button>
             <button class="btn btn-info" data-toggle="modal" data-target="#settingsModal">
@@ -131,38 +178,6 @@
           </div>
         </form>
   </div>
-<!-- 
-  <div class="navbar navbar-default">
-    <div class="container-fluid">
-      <div class="collapse navbar-collapse">
-        Search thingy
-        <form class="navbar-form">
-          <span class="input-group" id="simpleSearch">
-            <input type="text" class ="form-control" ng-model="searchValue" placeHolder="instert text..."></input>
-            <span class="input-group-btn">
-              <button class="btn btn-info" ng-click="search(searchValue)">
-                Search <span class="glyphicon glyphicon-search"/>
-              </button>
-            </span>
-          </span>
-        </form>
-
-        Modal triggers
-        <form class="navbar-form">
-          <div class="form-group">
-            <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" 
-                        ng-class="{disabled: selectedObjects.length === 0}">
-              Delete <span class="glyphicon glyphicon-trash"/>
-            </button>
-            <button class="btn btn-info" data-toggle="modal" data-target="#settingsModal">
-              Settings <span class="glyphicon glyphicon-wrench"/>
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-  -->
 
 
 
@@ -177,24 +192,32 @@
         <tr>
           <th></th> <!-- selection column -->
           <th><a href="" ng-click="setSortingPredicate('')">Firebase</a></th>
-          <th bindonce ng-repeat="key in data.keys.show" style="white-space:nowrap;">
+          <th ng-repeat="key in data.keys.show" style="white-space:nowrap;">
             <a href="" ng-click="setSortingPredicate(key)">
               {{data.formattedKeys.show[key]}}
             </a>
-              <span ng-if="predicate===key">
-                <span ng-if="!reverse" class="glyphicon glyphicon-sort-by-attributes"/>
-                <span ng-if="reverse" class="glyphicon glyphicon-sort-by-attributes-alt"/>
+              <span ng-if="filter.predicate===key">
+                <span ng-if="!filter.reverse" class="glyphicon glyphicon-sort-by-attributes"/>
+                <span ng-if="filter.reverse" class="glyphicon glyphicon-sort-by-attributes-alt"/>
               </span>
           </th>
         </tr>
 
-        <!-- data rows -->  <!-- | orderFilter  --><!--  | mySearchFilter:searchValue " -->
-        <tr bindonce ng-repeat="object in data.objects"
-        class="default" ng-class="{'selected': isSelected($index)}">
+        <!-- data rows -->
+        <tr 
+        ng-repeat="object in 
+        data.objects 
+        | mySearchFilter:filter.searchValue 
+        | mySortFilter:filter.predicate:filter.reverse 
+        | myDeletedUserFilter:dataType"
+        class="default" ng-class="{'selected': isSelected(object.id)}">
 
           <!-- row selection -->
-          <td ng-click="toggleSelectedRow($index, object.id)">
-            <input type="checkbox" ng-checked="isSelected($index)">
+          <td ng-click="toggleSelected(object.id)">
+            <!-- glyphicon-check/ -unchecked -->
+            <!-- <label ng-if="isSelected(object.id)===false" class="glyphicon glyphicon-unchecked"/>
+            <label ng-if="isSelected(object.id)===true" class="glyphicon glyphicon-check"/> -->
+            <input type="checkbox" ng-checked="isSelected(object.id)">
           </td>
           <!-- link to firebase -->
           <td>
@@ -202,7 +225,7 @@
           </td>
 
           <!-- data cells -->
-          <td bindonce ng-repeat="key in data.keys.show" style="vertical-align:top">
+          <td ng-repeat="key in data.keys.show" style="vertical-align:top">
             <div ng-init="entries=object[key]">
               <div ng-if="entries.length < 2" ng-init="entry=entries[0]">
                 <div ng-if="!entry.ref">  {{entry.value}}  </div>

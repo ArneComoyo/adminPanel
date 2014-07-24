@@ -47,6 +47,7 @@ app.filter('mySortFilter', function() {
 		angular.forEach(input, function(object) {
 			array.push(object);
 		});
+		// console.log('Sort: '+array.length+' remaining');
 
 		// Sort array
 		return array.sort(sortFunction);

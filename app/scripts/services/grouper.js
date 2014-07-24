@@ -176,16 +176,38 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 			ref.child('group').child(groupId).remove();
 	};
 
+	grouper.deleteChatroom = function(formatted) {
+		var rid = formatted.id;
+		var chatroom = angularFire.$child('chatroom')[rid];
+		console.log('deleting chatroom: "'+formatted.name[0].value+'"');
+
+		// delete pointers from users (members) back to this chatroom
+		remove('user', rid, chatroom.uid, 'rid');
+
+		// delete pointers from groups back to this chatroom
+		remove('group', rid, chatroom.gid, 'rid');
+
+		// delete chatroom messages
+		if (!debug)
+			ref.child('message').child(rid).remove();
+
+		// delete the room
+		if (!debug)
+			ref.child('chatroom').child(rid).remove();
+		
+	};
+
 	function remove (targetType, objectId, lIds, rIdName) {
 		if(typeof lIds !== 'undefined') { // Should delete the whole event
-			if(typeof arguments[4] !== 'undefined') { // If a callback function is passed as a fift argument, store it in fun.
+			// console.log(arguments);
+			if(typeof arguments[4] !== 'undefined') { // If a callback function is passed as a fifth argument, store it in fun.
 				var fun = arguments[4];
 			}
-			console.log(lIds);
+			// console.log(lIds);
 			angular.forEach(lIds, function (value, key) {
 				var target = $firebase(ref.child(targetType).child(key));
-				console.log('\t\tRemove objectId from the '+ targetType + ' ' + target.$id + ' ');
-				console.log(target.$child(rIdName).$child(objectId));
+				console.log('\t\tRemove backward reference from the '
+					+targetType+' '+target.$id+'. \t', target.$child(rIdName).$child(objectId));
 				if(!debug)
 					target.$child(rIdName).$child(objectId).$remove();
 				if(typeof fun !== 'undefined') {

@@ -23,6 +23,13 @@ app.factory('Library', function (FIREBASE_URL) {
 			return undefined;
 	};
 
+	// Remote means the data is stored in another structure. E.g. chatroom messages are stored in 'messages', not in the chatroom.
+	library.remoteProperties = function(type) {
+		if (type === 'chatroom') {
+			return ['roomMessages'];
+		}
+	};
+
 	var uppercaseFirst = function(string) {
 		return string.charAt(0).toUpperCase() + string.slice(1);
 	};
@@ -43,7 +50,8 @@ app.factory('Library', function (FIREBASE_URL) {
 		'user',
 		'group',
 		'event',
-		'chatroom'
+		'chatroom',
+		'notice'
 	];
 
 	var formattables = {
@@ -104,14 +112,30 @@ app.factory('Library', function (FIREBASE_URL) {
 			name: 'Admins',
 			objectType: 'user'
 		},
+		from: {
+			name: 'From',
+			objectType: 'user'
+		},
+		lastRead: { // <uid>: <time stamp>
+			name: 'Last Read',
+			objectType: 'user'
+		},
+		readReport: { // <uid>: <time stamp>
+			name: 'Read report',
+			objectType: 'user'
+		},
 		// messages
 		lastMessage: {
 			name: 'Last Message',
 			objectType: 'message'
 		},
-		lastRead: {
-			name: 'Last Read',
-			objectType: 'readReport'
+		firstMessage: {
+			name: 'First Message',
+			objectType: 'message'
+		},
+		roomMessages: {
+			name: 'Messages',
+			objectType: 'message'
 		}
 	};
 
