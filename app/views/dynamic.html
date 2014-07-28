@@ -9,8 +9,8 @@
 
   <!-- Login -->
   <ul id="login" class="nav nav-pills pull-right">
-    <li ng-show="auth.user"><a ng-click="auth.$logout()">{{auth.user.uid}} | Logout</a></li>
-    <li ng-hide="auth.user"><a class="btn btn-warning" ng-click="auth.$login('github')">Login with github</a></li>
+    <li ng-show="loggedIn === true"><a ng-click="auth.$logout()">{{auth.user.uid}} | Logout</a></li>
+    <li ng-show="loggedIn === false"><a class="btn btn-warning" ng-click="auth.$login('github')">Login with github</a></li>
   </ul>
 </div>
 
@@ -19,7 +19,7 @@
 
 <!-- ** MODALS ** -->
 <!-- Modal for settings -->
-<div class="modal fade" id="settingsModal">
+<div class="modal fade" id="settingsModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <!-- modal header -->
@@ -54,6 +54,7 @@
 
           </li>
         </ol>
+        <a href="{{firebaseKeySettingsUrl}}"><span class="label label-warning">Firebase settings</span></a>
       </div>
       <!-- modal footer -->
       <div class="modal-footer">
@@ -64,7 +65,7 @@
 </div>
 
 <!-- Modal for deleting -->
-<div class="modal fade" id="deleteModal">
+<div class="modal fade" id="deleteModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -85,8 +86,29 @@
   </div>
 </div>
 
+<!-- Modal for info -->
+<div class="modal fade" id="infoModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h3 calss="modal-title">Which Firebase?</h3>
+      </div>
+
+      <div class="modal-body">
+        <h4>{{firebaseUrl}}</h4>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">OK</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <!-- Modal for advanced search -->
-<div class="modal fade" id="advancedSearchModal">
+<div class="modal fade" id="advancedSearchModal" tabindex="-1">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -114,38 +136,23 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-warning" ng-click="searchObject={}; search(searchObject)">Clear <span class="glyphicon glyphicon-remove"/></button>
-        <button class="btn btn-info" ng-click="search(searchObject)">Search <span class="glyphicon glyphicon-search"/></button>
+        <button class="btn btn-primary" ng-click="search(searchObject)">Search <span class="glyphicon glyphicon-search"/></button>
       </div>
     </div>
   </div>
 </div>
-<!-- 
-          <div class="control-group">
-            <label class="control-label" for="appendedtext">{{formattedKeys[key]}}</label>
-            <div class="controls">
-                <div class="input-group">
-                  <input type="text" class="form-control" ng-model="searchObject[key]">
-                  <div class="input-group-btn">
-                    <button class="btn" ng-click="search(searchObject)">
-                      <span class="glyphicon glyphicon-search"/>
-                    </button>
-                  </div>
-                </div>
-            </div>
-          </div>
- -->
 
 
 
 <!-- Login prompt -->
-<div class="container add-space" ng-if="!auth.user">
+<div class="container add-space" ng-if="loggedIn === false">
   <h1 class="text-center"><span class="label label-warning">Please log in to access the database</span></h1>
 </div>
 
 
 
 <!-- ** MAIN CONTENT ** -->
-<div class="container  add-space" ng-if="auth.user">
+<div class="container  add-space" ng-if="loggedIn === true">
 
 
   <!-- ** USER INPUT ** -->
@@ -154,29 +161,32 @@
         <form class="navbar-form">
           <span class="input-group" id="simpleSearch">
             <input type="text" class ="form-control" ng-model="html.searchValue" placeHolder="Search phrase" ng-blur="delayedUpdateHtmlSearchValue()"/>
-            <!-- ng-blur="html.searchValue = typeOf(filter.searchValue) ==='object' ? '<advanced>' : filter.searchValue"/> -->
             <div class="input-group-btn">
-              <button class="btn btn-info" ng-click="search(html.searchValue)">
+              <button class="btn btn-primary" ng-click="search(html.searchValue)">
                 Search <span class="glyphicon glyphicon-search"/>
               </button>
-              <button type="button" class="btn btn-info" data-toggle="modal" data-target="#advancedSearchModal">
+              <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#advancedSearchModal">
                 <span class="glyphicon glyphicon-list-alt"/>
               </button>
             </div>
           </span>
-        </form>
 
-        <!-- Modal triggers -->
-        <form class="navbar-form">
           <div class="form-group">
+            <!-- Delete modal trigger -->
             <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" 
                         ng-class="{disabled: nofSelectedObjects() === 0}">
               Delete <span class="glyphicon glyphicon-trash"/>
             </button>
+            <!-- Settings modal trigger -->
             <button class="btn btn-info" data-toggle="modal" data-target="#settingsModal">
               Settings <span class="glyphicon glyphicon-wrench"/>
             </button>
+            <!-- Info modal trigger -->
+            <button class="btn btn-default" data-toggle="modal" data-target="#infoModal">
+              <span class="glyphicon glyphicon-info-sign"/>
+            </button>
           </div>
+
         </form>
   </div>
 

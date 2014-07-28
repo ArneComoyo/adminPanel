@@ -9,11 +9,22 @@
  */
  app.controller('DynamicCtrl', function ($scope, $firebase, $routeParams, $firebaseSimpleLogin, $filter, FIREBASE_URL, Library, DataLoader, Grouper) {
 
+ 	var whichFirebase = function() {
+		$scope.whichFirebase = $routeParams.whichFirebase;
+		if ($scope.whichFirebase !== 'staging'
+			&& $scope.whichFirebase !== 'production'
+			&& $scope.whichFirebase !== 'interns'
+			) {
+		      	$scope.whichFirebase = 'INVALID FIREBASE: '+$routeParams.whichFirebase;
+		      	console.log($scope.whichFirebase);
+		}
+ 	} ;
 
 
 	// PROVIDE DATA
 	var provideData = function() {
 		// Get information from URL
+		$scope.firebaseUrl = FIREBASE_URL;
 		$scope.dataType = $routeParams.dataType;
 		$scope.id = $routeParams.id; // may be undefined
 		$scope.childId = $routeParams.childId; // may be undefined
@@ -68,7 +79,7 @@
 			// Force load data (regardless of buffer) and bind it to the scope
 			DataLoader.load($scope.dataType, getId());
 			$scope.data = DataLoader.data;
-			provideKeySettings();
+			// provideKeySettings();
 		};
 
 
@@ -84,8 +95,7 @@
 		 // 	};
 		 // 	$scope.setData();
 	 	// });
-	}
-	provideData();
+	} ();
 
 
 
@@ -95,14 +105,17 @@
 		var authResponse = function(error, user) {
 			if (error) {
 				// an error occurred while attempting login
+				$scope.loggedIn = false;
 				console.log('Error logging in: ', error);
 				console.log('If you are an admin, you can add yourself to the "admin"-directory: '+FIREBASE_URL+'admin');
 				console.log('Create an entry with the key "github:<your github id>". Find your github id here: http://caius.github.io/github_id/');
 			} else if (user) {
 				// user authenticated with Firebase
+				$scope.loggedIn = true;
 				$scope.setData();
 			} else {
 				// user is not logged in
+				$scope.loggedIn = false;
 				console.log('Not logged in');
 			}
 		};
@@ -113,8 +126,7 @@
 		$scope.auth = $firebaseSimpleLogin(ref);
 		// This line will run authResponse() upon creation and when $scope.auth.$login() is called
 		new FirebaseSimpleLogin(ref, authResponse);
-	};
-	login();
+	} ();
 
 
 
@@ -129,15 +141,11 @@
 	/* Helper fuction */
 	$scope.delayedUpdateHtmlSearchValue = function() {
 		setTimeout(function() {
-			$scope.updateHtmlSearchValue();
-                    if($scope.$root.$$phase !== '$apply') { // check if $apply phase is already running
-                        $scope.$apply();
-                    }
+			$scope.$apply($scope.updateHtmlSearchValue);
 		}, 200);
 	};
 	$scope.updateHtmlSearchValue = function() {
 		$scope.html.searchValue = typeof $scope.filter.searchValue ==='object' ? '<advanced>' : $scope.filter.searchValue;
-		console.log('Html search value: ', $scope.html.searchValue);
 	};
 	/* Main function */
 	$scope.search = function(searchValue) {
@@ -162,14 +170,15 @@
 	};
 	// SORT
 	$scope.filter.predicate = '';
-	$scope.filter.reverse = true; // (true -> Descending first)
+	var defaultOrder = false; // (true -> Descending first)
+	$scope.filter.reverse = defaultOrder;
 	$scope.setSortingPredicate = function(predicate) {
 		if ($scope.filter.predicate === predicate) {
 			// Same as before
 			$scope.filter.reverse = !$scope.filter.reverse;
 		} else {
 			// New value
-			$scope.filter.reverse = true; // true -> Descending first
+			$scope.filter.reverse = defaultOrder;
 			$scope.filter.predicate = predicate;
 		}
 	};
@@ -233,7 +242,8 @@
 	var provideKeySettings = function()  {
 
 		// Get keys from firebase
-		var keyRef = new Firebase(Library.urlOfKeys($scope.dataType));
+		$scope.firebaseKeySettingsUrl = Library.urlOfKeys($scope.dataType)
+		var keyRef = new Firebase($scope.firebaseKeySettingsUrl);
 
 
 		keyRef.on('value', function(snap) {
@@ -297,8 +307,7 @@
 			};
 
 		});
-	};
-	provideKeySettings();
+	} ();
 
 
 });

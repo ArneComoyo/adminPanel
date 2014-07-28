@@ -6,34 +6,78 @@ app.factory('Library', function (FIREBASE_URL) {
 
 	// Functions
 	library.primaryPropertyOf = function(type) {
-		if (type === 'chatroom') {
-			return 'topic';
-		} else if (type === 'message') {
+		if (type === 'message') {
 			return 'text';
 		}
+		// else if (type === 'importRsvp') {
+		// 	return '<uid>+value'; // Apply as if type = 'rsvp'
+		// } else if (type === 'chatroom') {
+		// 	return '{<gid>}+<eid>,<eid>,...<eid>.'
+		// }
 
-		return 'name'; // TODO correct this shit
+		return 'name';
 	};
 
-	library.typeOf = function(key) {
-		var thing = formattables[key];
+	library.typeOf = function(propertyName) {
+		var thing = formattables[propertyName];
 		if (thing)
 			return thing.objectType;
 		else
-			return undefined;
+			return;
+	};
+	library.secondaryTypeOf = function(propertyName) {
+		var thing = formattables[propertyName];
+		if (thing && thing.secondaryType)
+			return thing.secondaryType;
+		else
+			return;	
+	};
+	library.remoteTypeOf = function(propertyName) {
+		var thing = formattables[propertyName];
+		if (thing && thing.remoteType)
+			return thing.remoteType;
+		else
+			return;
 	};
 
 	// Remote means the data is stored in another structure. E.g. chatroom messages are stored in 'messages', not in the chatroom.
 	library.remoteProperties = function(type) {
-		if (type === 'chatroom') {
-			return ['roomMessages'];
+		if (type === 'chatroom' || type === 'notice') {
+			return ['importMessages'];
+		} else if (type === 'event') {
+			return ['importRsvps'];
 		}
 	};
 
-	var uppercaseFirst = function(string) {
-		return string.charAt(0).toUpperCase() + string.slice(1);
+	library.hasKeyValuePairs = function(propertyName) {
+		return (
+			   propertyName === 'lastRead'
+			|| propertyName === 'readReport'
+			|| propertyName === 'importRsvps' // TODO (!?) should be just rsvp
+			);
+	};
+	library.hasReference = function(propertyName) {
+		return (
+			propertyName === 'lastMessage'
+			|| propertyName === 'firstMessage'
+			);
 	};
 
+	library.isNested = function(type) {
+		return (
+			type === 'message'
+			|| type === 'rsvp'
+			);
+	};
+
+	// ** Keys (e.g. propertyNames) **
+	var uppercaseFirst = function(string) {
+		if (typeof string !== 'string' || string === '')
+			// Not applicable
+			return string;
+
+		return string.charAt(0).toUpperCase() + string.slice(1);
+	};
 	library.readableKey = function(key) {
 		var thing = formattables[key];
 		return (!!thing) ? thing.name : uppercaseFirst( key );
@@ -42,7 +86,6 @@ app.factory('Library', function (FIREBASE_URL) {
 	library.urlOfKeys = function(type) {
 		return FIREBASE_URL+'adminPanel/settings/dispProperties/'+type;
 	}
-
 
 	
 	// Fields
@@ -116,13 +159,15 @@ app.factory('Library', function (FIREBASE_URL) {
 			name: 'From',
 			objectType: 'user'
 		},
-		lastRead: { // <uid>: <time stamp>
+		lastRead: { // <uid>: <mid>
 			name: 'Last Read',
-			objectType: 'user'
+			objectType: 'user',
+			secondaryType: 'message'
 		},
-		readReport: { // <uid>: <time stamp>
+		readReport: { // <uid>: <mid>
 			name: 'Read report',
-			objectType: 'user'
+			objectType: 'user',
+			secondaryType: 'message'
 		},
 		// messages
 		lastMessage: {
@@ -133,9 +178,20 @@ app.factory('Library', function (FIREBASE_URL) {
 			name: 'First Message',
 			objectType: 'message'
 		},
-		roomMessages: {
+		importMessages: {
 			name: 'Messages',
-			objectType: 'message'
+			objectType: 'message',
+			remoteType: 'message'
+		},
+		// rsvps
+		importRsvps: {
+			name: 'RSVP',
+			objectType: 'user',
+			remoteType: 'rsvp'
+		},
+		rsvp: {
+			name: 'RSVP',
+			objectType: 'user'
 		}
 	};
 

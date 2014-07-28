@@ -13,7 +13,7 @@ app.filter('myDeletedUserFilter', function() {
 			 *   1) object has a 'deactivated' parameter
 			 *   2) deactivated is 'true'
 			 */	
-			if (!!object.deactivated && object.deactivated[0].value === 'true') {
+			if (!!object.deactivated && object.deactivated[0].value == 'true') {
 				return false;
 			} else {
 				return true;

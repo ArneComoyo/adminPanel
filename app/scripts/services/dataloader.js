@@ -74,7 +74,7 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 			// Finds correct firebase reference.
 			// Used when an object property is a reference to another object in firebase.
 			var getRef = function(type, id) {
-				if (type === 'message')
+				if (Library.isNested(type))
 					return type+'/'+parentId+'/'+id;
 				else
 					return type+'/'+id;
@@ -82,126 +82,206 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 
 			// Inserts object containing a readable value, and a reference to the object (in firebase)
 			// Used when an object property contains a list of references to other objects.
-			var insertFormattedReference = function(array, index, type, id) {
+			var insertFormattedReference = function(element, type, id, concatOption, parts) {
 				var ref = getRef(type, id);
-				var url = FIREBASE_URL+ref;
+				var url = FIREBASE_URL+getRef(type, id);
 				var primary = Library.primaryPropertyOf(type);
+
+				var setValue = function(value) {
+					if (!concatOption) {
+						element.value = value;
+
+					} else {
+						parts[concatOption] = value;
+						var prepend = (typeof parts['prepend'] === undefined) ? '' : parts['prepend'];
+						var append = (typeof parts['append'] === undefined) ? '' : parts['append'];
+						element.value = prepend+': "'+append+'"';
+					}
+				};
 
 				new Firebase(url).on('value', function(snap) {
 					var val = snap.val();
 
-					array[index] = (!val)
-						// No object at referenced location. Just display id.
-						? { value: id }
-						// Found object at referenced locatoin.
-						: {
-							// Add reference
-							ref: ref,
-							// Display primary value, if found
-							value: (!val[primary])
-							? id
-							: val[primary]
-						};
+					if (!val) {
+						// No data found at url location
 
+						// Use id as display value
+						setValue(id);
+					} else {
+						// Found data
+
+						// ref ... (concatOption is used for double reference -> don't link to either)
+						if (!concatOption) 
+							element.ref = ref;
+
+						// ... and value
+						var value = 
+								(!val[primary])
+								? id
+								: val[primary];
+						setValue(value);
+					}
 				});
 			};
+			var formatElement = function(propertyName, key, value, element)  {
 
-			// Formats an object (which is a property of a parent object) containing references to other objects.
+				if (Library.hasKeyValuePairs(propertyName)) {
+					var keyType = Library.typeOf(propertyName);
+					var valType = Library.secondaryTypeOf(propertyName);
+					var parts = {};
+					insertFormattedReference(element, keyType, key, 'prepend', parts);
+					insertFormattedReference(element, valType, value, 'append', parts);
+
+					// Add reference if the key-value is contained in a different structure (e.g. rsvp)
+					var refType = Library.remoteTypeOf(propertyName);
+					if (typeof refType !== 'undefined') {
+						element.ref = getRef(refType, key);
+					}
+				} else {
+					var type = Library.typeOf(propertyName);
+					insertFormattedReference(element, type, key);
+				}
+			};
+
+			// Formats a property of a parent object, containing references to other objects.
 			// Inserts the formatted references into an array which is provided.
 			// Used when an object property contains a list of references to other objects.
-			var formatToArray = function(object, array, propertyName) {
-				var i = 0;
-				var type = Library.typeOf(propertyName);
-				angular.forEach(object, function(value, id){
-					// Note: value is not used, usually just a dummy value like 'T'
-					insertFormattedReference(array, i++, type, id);
+			var formatToArray = function(propertyName, property, array) {
+				var index = 0;
+				angular.forEach(property, function(value, key){
+					var object = { value: '' };
+					array[index++] = object;
+					formatElement(propertyName, key, value, object);
 				});
 			};
 
 			var dateFormat = 'MMM d yyyy, H:mm';
-			var formatProperty = function(formatted, key, value) {
-				// Look up proper value (may be key rather than value)
+			var formatProperty = function(formatted, propertyName, property) {
+				if (!property)
+					return;
+				var object = { value: '' };
+				var array = [object];
+				formatted[propertyName] = array;
 
-				if (typeof value === 'object') {
-					// assume value is an object that contains key value pairs, where keys are id's
-					formatToArray(value, formatted[key] = [], key);
+				if (typeof property === 'object') {
+					// assume property is an object that contains key value pairs
+					formatToArray(propertyName, property, array);
 
 				} else {
-					// assume value is a primitive
+					// property is a primitive
 
-					if (typeof value === 'string') {
-						formatted[key] = [{value: value}];
-
-						// // TODO merge duplicate code! Similar to formatToArray (except value is string, not object)
-						var check = function() {
-							var type = Library.typeOf(key);
-							if (typeof type !== undefined) {
-								// could be possible to reference
-								var id = value;
-								var ref = getRef(type, id);
-								var url = FIREBASE_URL+ref;
-								var primary = Library.primaryPropertyOf(type);
-
-								try {
-									var fb = new Firebase(url);
-									fb.on('value', function(snap) {
-										var val = snap.val();
-
-										formatted[key] = (!val)
-											// No object at referenced location. Just display id.
-											? [{ value: id }]
-											// Found object at referenced locatoin.
-											: [{
-												// Add reference
-												ref: ref,
-												// Display primary value, if found
-												value: (!val[primary])
-												? id
-												: val[primary]
-											}];
-									});
-								} catch (err) {
-									// Url contains illegal characters.
-									// value is therefore not a reference.
-									// TODO look up in library to keep from attempting to read non-references as reference
-								}
-							}
-						};
-						check();
-
-
-					} else if (typeof value === 'number') {
-						if (key === 'when' || key === 'timeStamp' || key === 'lastLogin') {
-							formatted[key] = [{
-								value: $filter('date')(value, dateFormat), 
-								unixTime: value
-							}];
+					if (typeof property === 'string') {
+						if (Library.hasReference(propertyName)) {
+							formatElement(propertyName, property, undefined, object);
 						} else {
-							formatted[key] = [{
-								value: value
-							}];
+							object.value = property;
 						}
 
-					} else if (typeof value === 'boolean') {
-						formatted[key] = [{value: value}];
+					} else if (typeof property === 'number') {
+						if (propertyName === 'when' || propertyName === 'timeStamp' || propertyName === 'lastLogin') {
+							object.value = $filter('date')(property, dateFormat);
+							object.unixTime = property;
+
+						} else {
+							object.value = property;
+						}
+
+					} else if (typeof property === 'boolean') {
+						object.value = property;
 
 					} else {
-						formatted[key] = [{value: ' [TYPE ERROR] ('+(typeof value)+') : '+value }];
+						object.value = ' [TYPE ERROR] ('+(typeof property)+') : '+property;
 
 					}
 
-					if (key === Library.primaryPropertyOf(type)) {
+					if (propertyName === Library.primaryPropertyOf(type)) {
 						// This property is the primary property (i.e. 'name' for user)
 						// put a ref on the object
-						formatted[key][0].ref = type+'/'+id;
+						object.ref = type+'/'+id;
 					}
 				}
 			};
+			// var formatElementToArray = function(propertyName, key, value, array, index)  {
+			// 	array[index] = { value: ''};
+
+			// 	if (Library.hasKeyValuePairs(propertyName)) {
+			// 		var keyType = Library.typeOf(propertyName);
+			// 		var valType = Library.secondaryTypeOf(propertyName);
+			// 		insertFormattedReference(array[index], keyType, key, 'prepend');
+			// 		insertFormattedReference(array[index], valType, value, 'append');
+
+			// 		// Add reference if the key-value is contained in a different structure (e.g. rsvp)
+			// 		var refType = Library.remoteTypeOf(propertyName);
+			// 		if (typeof refType !== 'undefined') {
+			// 			array[index].ref = getRef(refType, key);
+			// 		}
+			// 	} else {
+			// 		var type = Library.typeOf(propertyName);
+			// 		insertFormattedReference(array[index], type, key);
+			// 	}
+			// };
+
+			// // Formats a property of a parent object, containing references to other objects.
+			// // Inserts the formatted references into an array which is provided.
+			// // Used when an object property contains a list of references to other objects.
+			// var formatToArray = function(propertyName, property, array) {
+			// 	var index = 0;
+			// 	angular.forEach(property, function(value, key){
+			// 		formatElementToArray(propertyName, key, value, array, index++);
+			// 	});
+			// };
+
+			// var dateFormat = 'MMM d yyyy, H:mm';
+			// var formatProperty = function(formatted, propertyName, property) {
+			// 	if (!property)
+			// 		return;
+			// 	var object = { value: '' };
+			// 	var array = [object];
+			// 	formatted[propertyName] = array;
+
+			// 	if (typeof property === 'object') {
+			// 		// assume property is an object that contains key value pairs
+			// 		formatToArray(propertyName, property, array);
+
+			// 	} else {
+			// 		// property is a primitive
+
+			// 		if (typeof property === 'string') {
+			// 			if (Library.hasReference(propertyName)) {
+			// 				formatElementToArray(propertyName, property, undefined, array, 0);
+			// 			} else {
+			// 				object.value = property;
+			// 			}
+
+			// 		} else if (typeof property === 'number') {
+			// 			if (propertyName === 'when' || propertyName === 'timeStamp' || propertyName === 'lastLogin') {
+			// 				object.value = $filter('date')(property, dateFormat);
+			// 				object.unixTime = property;
+
+			// 			} else {
+			// 				object.value = property;
+			// 			}
+
+			// 		} else if (typeof property === 'boolean') {
+			// 			object.value = property;
+
+			// 		} else {
+			// 			object.value = ' [TYPE ERROR] ('+(typeof property)+') : '+property;
+
+			// 		}
+
+			// 		if (propertyName === Library.primaryPropertyOf(type)) {
+			// 			// This property is the primary property (i.e. 'name' for user)
+			// 			// put a ref on the object
+			// 			object.ref = type+'/'+id;
+			// 		}
+			// 	}
+			// };
 
 			// Format and add properties found on the original object
-			angular.forEach(original, function(value, key){
-				if (data.keys.show.indexOf(key) > -1) {
-					formatProperty(formatted, key, value);
+			angular.forEach(original, function(property, propertyName){
+				if (data.keys.show.indexOf(propertyName) > -1) {
+					formatProperty(formatted, propertyName, property);
 				}
 			});
 
@@ -210,22 +290,21 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 				var remoteProperties = Library.remoteProperties(type);
 				if (!!remoteProperties) {
 					for (var i = 0; i < remoteProperties.length; i++) {
-						var key = remoteProperties[i];
+						var propertyName = remoteProperties[i];
 
-						if (data.keys.show.indexOf(key) > -1) {
-							var remoteType = Library.typeOf(key);
+						if (data.keys.show.indexOf(propertyName) > -1) {
+							var remoteType = Library.remoteTypeOf(propertyName);
 
 							var ref = new Firebase(FIREBASE_URL+remoteType+'/'+id);
 							ref.on('value', function(snap) {
-								formatToArray(snap.val(), formatted[key] = [], key);
+								var property = snap.val();
+								formatProperty(formatted, propertyName, property);
 							});
 						}
 					}
 				}
 			} ();
-
-			// Add generted properties, e.g. 'name' of chatroom is the list of members in it.
-			var addGeneratedProperties = function () {
+			var addGeneratedProperties = function() {
 				if (type === 'chatroom') {
 					var genProp = 'name';
 					if (data.keys.show.indexOf(genProp) > -1) {
@@ -263,6 +342,7 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 					}
 				}
 			} ();
+
 		};
 
 		var loadSingleObject = function() {
@@ -325,16 +405,16 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 				refAll.on('value', function(snap) {
 					data.keys.show = [];
 					var all = snap.val();
-					if (type === 'message') {
+					if (Library.isNested(type)) {
 						// nested structure
 						angular.forEach(all, function(room) {
 							angular.forEach(room, function(message) {
-								angular.forEach(message, function(value, key) {
-									if (data.keys.show.indexOf(key) === -1) {
-										data.keys.show.push(key);
-										data.formattedKeys.show[key] = Library.readableKey(key);
-									}
-								});
+									angular.forEach(message, function(value, key) {
+										if (data.keys.show.indexOf(key) === -1) {
+											data.keys.show.push(key);
+											data.formattedKeys.show[key] = Library.readableKey(key);
+										}
+									});
 							});
 						});
 

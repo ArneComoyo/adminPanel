@@ -8,6 +8,31 @@ app.filter('mySearchFilter', function() {
 		if (!search)
 			return input;
 
+
+		// This function checks if value contains searchString
+		var contains = function(value, searchString) {
+			if (typeof value === 'undefined') {
+				console.log('Err, undefined value');
+				return false;
+			}
+			if (typeof value !== 'string') {
+				if (typeof value === 'object') {
+					// If object, give error
+					console.log('Err: value is object! ', value);
+					return false;
+				} else {
+					// Turn into string
+					value = ''+value;
+				}
+			}
+			if (value.toLowerCase().indexOf(searchString.toLowerCase()) > -1) {
+				return true;
+			}
+		}
+
+
+		// ** Define accept-function ** 
+		//	(search-string or  -object?)
 		if (typeof search === 'string') {
 			// Search all properties for match to the search
 			var accept = function(object) {
@@ -27,13 +52,8 @@ app.filter('mySearchFilter', function() {
 									element.value is the displayed value, here the user name
 									*/
 									var element = property[propKey];
-									var string = element.value;
-									if (typeof string === 'undefined') {
-										console.log(key, object, propKey, element);
-									} else if (typeof string !== 'string') {
-										console.log('Err: not a string! ', string, ' in ', element, propKey, property, object);
-									}
-									else if (string.toLowerCase().indexOf(search.toLowerCase()) > -1) {
+									var value = element.value;
+									if (contains(value, search)) {
 										return true;
 									}
 								}
@@ -41,6 +61,7 @@ app.filter('mySearchFilter', function() {
 						}
 					}
 				}
+				return false;
 			};
 
 		} else if (typeof search === 'object') {
@@ -56,11 +77,9 @@ app.filter('mySearchFilter', function() {
 			*/
 			var accept = function(object) {
 				for (var key in search) {
+					var ok = false;
 					if (search.hasOwnProperty(key) 
-						//&& typeof search[key] === 'string'
 						&& search[key] !== '') {
-
-						// console.log('Searching on ', key, ' ', search[key]);
 
 						var property = object[key];
 
@@ -75,26 +94,25 @@ app.filter('mySearchFilter', function() {
 								element.value is the displayed value, here the user name
 								*/
 								var element = property[propKey];
-								var string = element.value;
-								if (typeof string === 'undefined') {
-									console.log(key, object, propKey, element);
-								} else if (typeof string !== 'string') {
-									console.log('Err: not a string! ', string, ' in ', element, propKey, property, object);
-								}
-								else if (string.toLowerCase().indexOf(search[key].toLowerCase()) > -1) {
-									return true;
+								var value = element.value;
+								if (contains(value, search [key])) {
+									ok = true;
 								}
 							}
 						}
 					}
+					if (!ok)
+						return false;
 				}
-			};
-		} else {
-			var accept = function(object) {
 				return true;
 			};
-		}
+
+		} else {
+			return input;
+		} 
+		// ** End define accept-function **
 		
+
 		// Return objects in array
 		var array = [];
 		angular.forEach(input, function(object) {
@@ -103,7 +121,7 @@ app.filter('mySearchFilter', function() {
 			}
 		});
 
-		// console.log('Order: '+array.length+' remaining');
+		// console.log('Search on '+(typeof search)+' '+search+', '+array.length+' remaining');
 
 		return array;
 	};
