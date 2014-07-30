@@ -60,5 +60,5 @@
   });
 
 // app.constant('FIREBASE_URL', 'https://interns-grouper.firebaseio.com/');
-// app.constant('FIREBASE_URL', 'https://staging-grouper.firebaseio.com/');
-app.constant('FIREBASE_URL', 'https://test-grouper.firebaseio.com/');  // Production, obviously
+app.constant('FIREBASE_URL', 'https://staging-grouper.firebaseio.com/');
+// app.constant('FIREBASE_URL', 'https://test-grouper.firebaseio.com/');  // Production, obviously

@@ -32,11 +32,14 @@ app.filter('mySortFilter', function() {
 				// if equal number of elements, sort by value of first element (i.e. string value of user.name)
 				if (diff === 0) {
 					try {
-						diff = pa[0].value > pb[0].value
+						var paVal = (!!pa[0].unixTime) ? pa[0].unixTime : pa[0].value;
+						var pbVal = (!!pb[0].unixTime) ? pb[0].unixTime : pb[0].value;
+
+						diff = paVal > pbVal
 						? 1
 						: -1;
 					} catch (err) {
-						console.log(a, pa, b, pb);
+						console.log('Sort error: ', err, 'params: ', a, pa, b, pb);
 					}
 				}
 
