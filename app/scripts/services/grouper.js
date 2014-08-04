@@ -7,22 +7,41 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 	var angularFire = $firebase(ref);
 	var grouper = {};
 
+	var deletionQueue = {
+		queued: [],
+		add: function(func, id) {
+			this.queued.push({
+				func: func,
+				id: id
+			});
+		},
+		hasNext: function() {
+			return this.queued.length > 0;
+		},
+		performNext: function() {
+			if (this.hasNext()) {
+				var action = this.queued.pop();
+				action.func(action.id);
+			}
+		}
+	};
+
 
 	grouper.deleteNotice = function (noticeId) {
-		var notice = angularFire.$child('notice')[noticeId];
-		console.log('deleting notice: ' + notice.$id);
+		var notice = ref.child('notice').child(noticeId);
+		console.log('deleting notice: '+FIREBASE_URL+'notice/'+noticeId);
 
 		remove('group', noticeId, notice.gid, 'noticeIds');
 
 		// Delete all messages belonging to the notice
-		var message = $firebase(ref.child('message'));
-		console.log(message.$child(noticeId));
+		console.log('deleting messages: '+FIREBASE_URL+'notice/'+noticeId);
 		if(!debug)
-			message.$child(noticeId).$remove();
+			ref.child('message').child(noticeId).remove();
 
-		console.log(notice);
 		if(!debug)
 			ref.child('notice').child(noticeId).remove();
+
+		deletionQueue.performNext();
 	};
 
 	grouper.deleteEvent = function (eventId) { // all good
@@ -51,6 +70,8 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 		console.log(event);
 		if(!debug)
 			ref.child('event').child(eventId).remove();
+
+		deletionQueue.performNext();
 	};
 
 	grouper.deleteUser = function (userId) { // does not clean up lastRead in chatroom and from in message. But should it?
@@ -147,13 +168,15 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 		var eraseUsers = true;
 		if (eraseUsers) {
 			console.log('Erasing user:', FIREBASE_URL+'user/'+userId);
-			ref.child('user').child(userId).remove();
-			// ref.$child('user').$child(userId).$remove();
+			if (!debug)
+				ref.child('user').child(userId).remove();
 		} else {
 			console.log('	Deactivating user '+user.name);
 			if(!debug)
 				ref.child('user').child(userId).child('deactivated').set(true);
 		}
+
+		deletionQueue.performNext();
 	};
 	
 
@@ -192,19 +215,21 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 		// angular.forEach(group.notiecIds, function(value, key) {
 		// 	grouper.deleteNotice(key);
 		// });
-		// for (var key in group.noticeIds) {
-		// 	console.log('Delete notice: '+FIREBASE_URL+'notice/'+key);
-		// 	// TODO queue deletion
-		// 	grouper.deleteNotice(key);
-		// }
+		for (var key in group.noticeIds) {
+			console.log('Queue to delete notice: '+FIREBASE_URL+'notice/'+key);
+			// queue deletion
+			deletionQueue.add(grouper.deleteNotice, key);
+		}
 
 
 		/*
 		 *	Remove the actual group
 		 */
-		console.log('	Removeing group '+group.name);
+		console.log('	Removing group: '+group.name);
 		if(!debug)
 			ref.child('group').child(groupId).remove();
+
+		deletionQueue.performNext();
 	};
 
 	grouper.deleteChatroom = function(formatted) {
@@ -226,6 +251,7 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 		if (!debug)
 			ref.child('chatroom').child(rid).remove();
 		
+		deletionQueue.performNext();
 	};
 
 	function remove (targetType, objectId, lIds, rIdName) {
