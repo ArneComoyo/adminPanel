@@ -8,12 +8,13 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 	var grouper = {};
 
 
-	grouper.deleteNotice = function (noticeId) { // all good
+	grouper.deleteNotice = function (noticeId) {
 		var notice = angularFire.$child('notice')[noticeId];
 		console.log('deleting notice: ' + notice.$id);
 
 		remove('group', noticeId, notice.gid, 'noticeIds');
-		// TODO Delete all comments belonging to the notice
+
+		// Delete all messages belonging to the notice
 		var message = $firebase(ref.child('message'));
 		console.log(message.$child(noticeId));
 		if(!debug)
@@ -53,8 +54,9 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 	};
 
 	grouper.deleteUser = function (userId) { // does not clean up lastRead in chatroom and from in message. But should it?
-		var user = angularFire.$child('user')[userId];
-		console.log('deleting user: ' + user.name);
+		var user = ref.child('user').child(userId);
+		// var user = angularFire.$child('user')[userId];
+		console.log('deleting user: ' + user.child('name'));
 		console.log(ref.child(userId).toString());
 
 		/*
@@ -87,12 +89,17 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 		 *	Remove userId from chatrooms
 		 */
 		remove('chatroom', userId, user.rid, 'uid');
-		// Remove from msiden
-		var msisdn = $firebase(ref.child('msisdn'));
-		if(!debug)
-			msisdn.$child(user.msisdn).$remove();
-		console.log('msisdn');
-		console.log(msisdn.$child(user.msisdn));
+
+		// Remove from msisdn
+		try {
+			var msisdn = $firebase(ref.child('msisdn'));
+			if(!debug)
+				msisdn.$child(user.msisdn).$remove();
+			console.log('msisdn');
+			console.log(msisdn.$child(user.msisdn));
+		} catch (err) {
+			console.log('Msisdn not found');
+		}
 
 		// Remove from rsvp. Only works on second click? Only for the console.log
 		var rsvp = $firebase(ref.child('rsvp'));
@@ -119,10 +126,14 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 			});
 		});
 
-		// Remove the users msiden in gat
-		console.log(ref.child('gat').child(user.msisdn));
-		if(!debug)
-			ref.child('gat').child(user.msisdn).remove();
+		// Remove the users msisdn in gat
+		try {
+			console.log(ref.child('gat').child(user.msisdn));
+			if(!debug)
+				ref.child('gat').child(user.msisdn).remove();
+		} catch (err) {
+			console.log('Gat not found');
+		}
 
 
 		/*
@@ -133,9 +144,16 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 		/*
 		 *	Deactivate the actual user
 		 */
-		console.log('	Deactivating user '+user.name);
-		if(!debug)
-			ref.child('user').child(userId).child('deactivated').set(true);
+		var eraseUsers = true;
+		if (eraseUsers) {
+			console.log('Erasing user:', FIREBASE_URL+'user/'+userId);
+			ref.child('user').child(userId).remove();
+			// ref.$child('user').$child(userId).$remove();
+		} else {
+			console.log('	Deactivating user '+user.name);
+			if(!debug)
+				ref.child('user').child(userId).child('deactivated').set(true);
+		}
 	};
 	
 
@@ -164,10 +182,23 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 		 *	Remove groupId from chatrooms
 		 */
 		remove('chatroom', groupId, group.rid, 'gid');
+		
 		/*
 		 *	Remove groupId from notices
 		 */
 		remove('notice', groupId, group.notice, 'gid');
+
+		// TODO delete notice
+		// angular.forEach(group.notiecIds, function(value, key) {
+		// 	grouper.deleteNotice(key);
+		// });
+		// for (var key in group.noticeIds) {
+		// 	console.log('Delete notice: '+FIREBASE_URL+'notice/'+key);
+		// 	// TODO queue deletion
+		// 	grouper.deleteNotice(key);
+		// }
+
+
 		/*
 		 *	Remove the actual group
 		 */

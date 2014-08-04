@@ -190,6 +190,7 @@
         </form>
   </div>
 
+  {{selectedObjects}}
 
 
 
@@ -199,10 +200,15 @@
       <div class="panel-heading">{{dataType}}</div> -->
       <table class="table table-bordered" id="objectTable">
 
-        <!-- header rows-->
+        <!-- table headers-->
         <tr>
-          <th></th> <!-- selection column -->
+          <!-- selection column -->
+          <th ng-click="toggleSelectFiltered()">
+            <input type="checkbox" ng-checked="allFilteredAreSelected()">
+          </th>
+          <!-- Firebase column -->
           <th><a href="" ng-click="setSortingPredicate('')">Firebase</a></th>
+          <!-- Data columns -->
           <th ng-repeat="key in data.keys.show" style="white-space:nowrap;">
             <a href="" ng-click="setSortingPredicate(key)">
               {{data.formattedKeys.show[key]}}
@@ -214,7 +220,7 @@
           </th>
         </tr>
 
-        <!-- data rows -->
+        <!-- table data -->
         <tr 
         ng-repeat="object in 
         data.objects 

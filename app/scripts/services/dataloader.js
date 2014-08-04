@@ -361,14 +361,29 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 			// because then we will be swapping incorrectly later.
 			buffer[type] = data;
 
-			refAll.on('value', function(snap) {
-				angular.forEach(snap.val(), function(object, id) {
-					var formatted = { id: id };
-					data.objects[id] = formatted;
+			// Helper functions
+			var updateChild = function(snap) {
+				var object = snap.val();
+				var id = snap.name();
 
-					formatObject(object, formatted, id);
-				});
-			});
+				var formatted = { id: id };
+				data.objects[id] = formatted;
+
+				formatObject(object, formatted, id);
+			};
+			var removeChild =  function(snap) {
+				// After swapping, data.objects may be a different object, although this listener persists.
+				// When this function is called, data.objects[id] may not exist, but buffer[type].objects[id] does.
+				var id = snap.name();
+				delete buffer[type].objects[id];
+
+				// CONCIDER: remove ref.on('value', ... for this object's properties ?
+			};
+
+			refAll.on('child_added', updateChild);
+			refAll.on('child_changed', updateChild);
+
+			refAll.on('child_removed', removeChild);
 		};
 
 		var loadObjects = function() {

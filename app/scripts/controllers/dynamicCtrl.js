@@ -7,7 +7,7 @@
  * # DynamicCtrl
  * Controller of the adminPanel
  */
- app.controller('DynamicCtrl', function ($scope, $firebase, $routeParams, $firebaseSimpleLogin, $filter, FIREBASE_URL, Library, DataLoader, Grouper) {
+ app.controller('DynamicCtrl', function ($scope, $routeParams, $firebase, $firebaseSimpleLogin, $filter, FIREBASE_URL, Library, DataLoader, Grouper) {
 
  	var whichFirebase = function() {
 		$scope.whichFirebase = $routeParams.whichFirebase;
@@ -167,10 +167,13 @@
 		// set serach value
 		$scope.filter.searchValue = searchValue;
 		$scope.updateHtmlSearchValue();
+
+		// Filter selected objects (avoid having selected hidden objects)
+		// $scope.selectedObjects = $filter('mySearchFilter')($scope.selectedObjects, $scope.filter.searchValue);
 	};
 	// SORT
-	$scope.filter.predicate = '';
 	var defaultOrder = false; // (true -> Descending first)
+	$scope.filter.predicate = '';
 	$scope.filter.reverse = defaultOrder;
 	$scope.setSortingPredicate = function(predicate) {
 		if ($scope.filter.predicate === predicate) {
@@ -185,28 +188,90 @@
 
 
 	// SELECTION
-	$scope.selectedObjects = {};
-	$scope.toggleSelected = function (objectId) {
+	var selectionSetup = function() {
 
-		if (!$scope.isSelected(objectId)) {
-			// Select
-			$scope.selectedObjects[objectId] = DataLoader.data.objects[objectId];
-			// console.log('push');
-			// console.log($scope.selectedObjects);
+		$scope.selectedObjects = {};
 
-		} else {
-			// Deselect
-			delete $scope.selectedObjects[objectId];
-			// console.log('pop');
-			// console.log($scope.selectedObjects);
-		}
-	};
-	$scope.isSelected = function(objectId){
-		return (typeof $scope.selectedObjects[objectId] === 'object');
-	};
-	$scope.nofSelectedObjects = function() {
-		return Object.keys($scope.selectedObjects).length;
-	};
+		$scope.isSelected = function(objectId){
+			return (typeof $scope.selectedObjects[objectId] === 'object');
+		};
+
+		$scope.nofSelectedObjects = function() {
+			return Object.keys($scope.selectedObjects).length;
+		};
+
+		$scope.toggleSelected = function (objectId) {
+			if (!$scope.isSelected(objectId)) {
+				// Select
+				$scope.selectedObjects[objectId] = $scope.data.objects[objectId];
+			} else {
+				// Deselect
+				delete $scope.selectedObjects[objectId];
+			}
+		};
+
+		var selectFilteredSetup = function() {
+
+			// Helper functions
+			var isEmpty = function(selectedObjects) {
+				console.log(Object.keys(selectedObjects).length);
+				console.log((Object.keys(selectedObjects).length === 0));
+				return (Object.keys(selectedObjects).length === 0);
+			};
+			var sameObjects = function(selectedObjects, filteredObjects) {
+				if (Object.keys(selectedObjects).length
+				     !== Object.keys(filteredObjects).length) {
+					return false;
+				}
+
+				for (var key in filteredObjects) {
+					var oid = filteredObjects[key].id;
+					var contains = typeof selectedObjects[oid] !== 'undefined';
+					if (!contains) {
+						return false;
+					}
+				}
+				return true;
+			};
+			var selectAll = function(filteredObjects) {
+				for (var key in filteredObjects) {
+					var obj = filteredObjects[key];
+					$scope.selectedObjects[obj.id] = obj;
+				}
+			};
+			var getFilteredObjects = function() {
+				var filteredObjects = $filter('mySearchFilter')($scope.data.objects, $scope.filter.searchValue);
+				filteredObjects = $filter('myDeletedUserFilter')(filteredObjects);
+				return filteredObjects;
+			};
+
+			// Scope functions
+			$scope.allFilteredAreSelected = function() {
+				var filteredObjects = getFilteredObjects();
+				return sameObjects($scope.selectedObjects, filteredObjects);
+			};
+			$scope.toggleSelectFiltered = function() {
+				var filteredObjects = getFilteredObjects();
+				
+				if (isEmpty($scope.selectedObjects)) {
+					// None selected, select all filtered
+					selectAll(filteredObjects);
+
+				} else if (sameObjects($scope.selectedObjects, filteredObjects)) {
+					// Al filtered are already selected
+					// Unselect them
+					$scope.selectedObjects = {};
+
+				} else {
+					// Select all filtered, unselect all else
+					$scope.selectedObjects = {};
+					selectAll(filteredObjects);
+				}
+			};
+
+		} (); // End selectFilteredSetup
+
+	} (); // End selectionSetup
 
 
 	// DELETING
