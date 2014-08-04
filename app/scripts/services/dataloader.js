@@ -417,7 +417,7 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 				// return;
 
 				console.log('Generate keys from data');
-				refAll.on('value', function(snap) {
+				refAll.once('value', function(snap) {
 					data.keys.show = [];
 					var all = snap.val();
 					if (Library.isNested(type)) {
@@ -453,6 +453,7 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 
 			var val = snap.val();
 			if (!val) {
+				console.log('No keys found! '+Library.urlOfKeys(type), val);
 				// no keys -> generate
 				generateKeysFromData();
 
