@@ -46,7 +46,7 @@ app.factory('Grouper', function (FIREBASE_URL, $firebase) {
 
 	grouper.deleteEvent = function (eventId) { // all good
 		var event = angularFire.$child('event')[eventId];
-		console.log('deleting event: ' + event['name']);
+		console.log('Deleting event: '+event['name']+' '+ref.child('event').child(eventId).toString);
 		console.log(ref.child(eventId).toString());
 
 		/*
