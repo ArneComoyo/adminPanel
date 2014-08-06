@@ -12,7 +12,7 @@ app.filter('mySearchFilter', function() {
 		// This function checks if value contains searchString
 		var contains = function(value, searchString) {
 			if (typeof value === 'undefined') {
-				console.log('Err, undefined value');
+				// console.log('Err, undefined value');
 				return false;
 			}
 			if (typeof value !== 'string') {

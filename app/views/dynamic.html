@@ -1,5 +1,5 @@
 <div class="container">
-<!-- Navigation -->
+  <!-- Navigation -->
   <ul class="nav nav-pills pull-left" role="tablist">
     <li ng-repeat="type in types" ng-class="{active: dataType === type}">
       <a ng-href="#/{{type}}" ng-class="{active: dataType === type}">{{type}}</a>
@@ -14,7 +14,6 @@
   </ul>
 </div>
 
-<!-- <input class="text" ng-model="html.searchValue"/> -->
 
 
 <!-- ** MODALS ** -->
@@ -96,7 +95,7 @@
       </div>
 
       <div class="modal-body">
-        <h4>{{firebaseUrl}}</h4>
+        <h4><b>{{whichFirebase}}</b>: {{firebaseUrl}}</h4>
       </div>
 
       <div class="modal-footer">
@@ -144,131 +143,138 @@
 
 
 
-<!-- Login prompt -->
+
+<!-- ** LOGIN PROMPT ** -->
 <div class="container add-space" ng-if="loggedIn === false">
   <h1 class="text-center"><span class="label label-warning">Please log in to access the database</span></h1>
 </div>
 
 
 
-<!-- ** MAIN CONTENT ** -->
+
+<!-- ** MAIN CONTENT (Navbar & table) ** -->
 <div class="container  add-space" ng-if="loggedIn === true">
 
 
-  <!-- ** USER INPUT ** -->
-  <div class="container">
-        <!-- Search thingy -->
-        <form class="navbar-form">
-          <span class="input-group" id="simpleSearch">
-            <input type="text" class ="form-control" ng-model="html.searchValue" placeHolder="Search phrase" ng-blur="delayedUpdateHtmlSearchValue()"/>
-            <div class="input-group-btn">
-              <button class="btn btn-primary" ng-click="search(html.searchValue)">
-                Search <span class="glyphicon glyphicon-search"/>
-              </button>
-              <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#advancedSearchModal">
-                <span class="glyphicon glyphicon-list-alt"/>
-              </button>
-            </div>
-          </span>
+  <!-- ** NAVBAR ** -->
+  <nav class="navbar navbar-default" role="navigation">
+    <div class="container-fluid">
 
-          <div class="form-group">
-            <!-- Delete modal trigger -->
-            <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" 
-                        ng-class="{disabled: nofSelectedObjects() === 0}">
-              Delete <span class="glyphicon glyphicon-trash"/>
+      <!-- Navbar header -->
+      <div class="navbar-header">
+        <a class="navbar-brand disabled" href="#">{{whichFirebase}}</a>
+      </div>
+
+      <!-- Navbar content: -->
+      <!-- Search thingy -->
+      <form class="navbar-form">
+        <span class="input-group" id="simpleSearch">
+          <input type="text" class ="form-control" ng-model="html.searchValue" placeHolder="Search phrase" ng-blur="delayedUpdateHtmlSearchValue()"/>
+          <div class="input-group-btn">
+            <button class="btn btn-primary" ng-click="search(html.searchValue)">
+              Search <span class="glyphicon glyphicon-search"/>
             </button>
-            <!-- Settings modal trigger -->
-            <button class="btn btn-info" data-toggle="modal" data-target="#settingsModal">
-              Settings <span class="glyphicon glyphicon-wrench"/>
-            </button>
-            <!-- Info modal trigger -->
-            <button class="btn btn-default" data-toggle="modal" data-target="#infoModal">
-              <span class="glyphicon glyphicon-info-sign"/>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#advancedSearchModal">
+              <span class="glyphicon glyphicon-list-alt"/>
             </button>
           </div>
+        </span>
 
-        </form>
-  </div>
+        <!-- Buttons -->
+        <div class="form-group">
+          <!-- Delete modal trigger -->
+          <button class="btn btn-danger" data-toggle="modal" data-target="#deleteModal" 
+                      ng-class="{disabled: nofSelectedObjects() === 0}">
+            Delete <span class="glyphicon glyphicon-trash"/>
+          </button>
+          <!-- Settings modal trigger -->
+          <button class="btn btn-info" data-toggle="modal" data-target="#settingsModal">
+            Settings <span class="glyphicon glyphicon-wrench"/>
+          </button>
+          <!-- Info modal trigger -->
+          <button class="btn btn-default" data-toggle="modal" data-target="#infoModal">
+            <span class="glyphicon glyphicon-info-sign"/>
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </nav>
 
 
 
 
   <!-- ** TABLE ** -->
-  <div class ="container add-space">
-   <!--  <div class="panel panel-default">
-      <div class="panel-heading">{{dataType}}</div> -->
-      <table class="table table-bordered" id="objectTable">
+  <table class="table table-bordered" id="objectTable">
 
-        <!-- table headers-->
-        <tr>
-          <!-- selection column -->
-          <th ng-click="toggleSelectFiltered()">
-            <input type="checkbox" ng-checked="allFilteredAreSelected()">
-          </th>
-          <!-- Firebase column -->
-          <th><a href="" ng-click="setSortingPredicate('')">Firebase</a></th>
-          <!-- Data columns -->
-          <th ng-repeat="key in data.keys.show" style="white-space:nowrap;">
-            <a href="" ng-click="setSortingPredicate(key)">
-              {{data.formattedKeys.show[key]}}
-            </a>
-              <span ng-if="filter.predicate===key">
-                <span ng-if="!filter.reverse" class="glyphicon glyphicon-sort-by-attributes"/>
-                <span ng-if="filter.reverse" class="glyphicon glyphicon-sort-by-attributes-alt"/>
-              </span>
-          </th>
-        </tr>
+    <!-- table headers-->
+    <tr>
+      <!-- selection column -->
+      <th ng-click="toggleSelectFiltered()">
+        <input type="checkbox" ng-checked="allFilteredAreSelected()">
+      </th>
+      <!-- Firebase column -->
+      <th><a href="" ng-click="setSortingPredicate('')">Firebase</a></th>
+      <!-- Data columns -->
+      <th ng-repeat="key in data.keys.show" style="white-space:nowrap;">
+        <a href="" ng-click="setSortingPredicate(key)">
+          {{data.formattedKeys.show[key]}}
+        </a>
+          <span ng-if="filter.predicate===key">
+            <span ng-if="!filter.reverse" class="glyphicon glyphicon-sort-by-attributes"/>
+            <span ng-if="filter.reverse" class="glyphicon glyphicon-sort-by-attributes-alt"/>
+          </span>
+      </th>
+    </tr>
 
-        <!-- table data -->
-        <tr 
-        ng-repeat="object in 
-        data.objects 
-        | mySearchFilter:filter.searchValue 
-        | mySortFilter:filter.predicate:filter.reverse 
-        | myDeletedUserFilter:dataType"
-        class="default" ng-class="{'selected': isSelected(object.id)}">
+    <!-- table data -->
+    <tr 
+    ng-repeat="object in 
+    data.objects 
+    | mySearchFilter:filter.searchValue 
+    | mySortFilter:filter.predicate:filter.reverse 
+    | myDeletedUserFilter:dataType"
+    class="default" ng-class="{'selected': isSelected(object.id)}">
 
-          <!-- row selection -->
-          <td ng-click="toggleSelected(object.id)">
-            <!-- glyphicon-check/ -unchecked -->
-            <!-- <label ng-if="isSelected(object.id)===false" class="glyphicon glyphicon-unchecked"/>
-            <label ng-if="isSelected(object.id)===true" class="glyphicon glyphicon-check"/> -->
-            <input type="checkbox" ng-checked="isSelected(object.id)">
-          </td>
-          <!-- link to firebase -->
-          <td>
-            <a href="{{firebaseTypeUrl+object.id}}"><span class="label label-warning">Firebase</span></a>
-          </td>
+      <!-- row selection -->
+      <td ng-click="toggleSelected(object.id)">
+        <!-- glyphicon-check/ -unchecked -->
+        <!-- <label ng-if="isSelected(object.id)===false" class="glyphicon glyphicon-unchecked"/>
+        <label ng-if="isSelected(object.id)===true" class="glyphicon glyphicon-check"/> -->
+        <input type="checkbox" ng-checked="isSelected(object.id)">
+      </td>
+      <!-- link to firebase -->
+      <td>
+        <a href="{{firebaseTypeUrl+object.id}}"><span class="label label-warning">Firebase</span></a>
+      </td>
 
-          <!-- data cells -->
-          <td ng-repeat="key in data.keys.show" style="vertical-align:top">
-            <div ng-init="entries=object[key]">
-              <div ng-if="entries.length < 2" ng-init="entry=entries[0]">
-                <div ng-if="!entry.ref">  {{entry.value}}  </div>
-                <div ng-if="!!entry.ref">  <a href="#/{{entry.ref}}">{{entry.value}}</a>  </div>
+      <!-- data cells -->
+      <td ng-repeat="key in data.keys.show" style="vertical-align:top">
+        <div ng-init="entries=object[key]">
+          <div ng-if="entries.length < 2" ng-init="entry=entries[0]">
+            <div ng-if="!entry.ref">  {{entry.value}}  </div>
+            <div ng-if="!!entry.ref">  <a href="#/{{entry.ref}}">{{entry.value}}</a>  </div>
+          </div>
+          <div ng-if="entries.length > 1">
+            <div ng-init="!entries.expand">
+              <div ng-if="!entries.expand">
+                <div ng-init="entry=entries[0]">
+                  <div ng-if="!entry.ref">  {{entry.value}}  </div>
+                  <div ng-if="!!entry.ref">  <a href="#/{{entry.ref}}">{{entry.value}}</a>  </div>
+                </div>  <a href="" class="special" ng-click="entries.expand=true">{{entries.length-1}} more</a>
               </div>
-              <div ng-if="entries.length > 1">
-                <div ng-init="!entries.expand">
-                  <div ng-if="!entries.expand">
-                    <div ng-init="entry=entries[0]">
-                      <div ng-if="!entry.ref">  {{entry.value}}  </div>
-                      <div ng-if="!!entry.ref">  <a href="#/{{entry.ref}}">{{entry.value}}</a>  </div>
-                    </div>  <a href="" class="special" ng-click="entries.expand=true">{{entries.length-1}} more</a>
-                  </div>
-                  <div ng-if="entries.expand">
-                    <div ng-repeat="entry in entries">
-                      <div ng-if="!entry.ref">  {{entry.value}}  </div>
-                      <div ng-if="!!entry.ref">  <a href="#/{{entry.ref}}">{{entry.value}}</a>  </div>
-                    </div>  <a href="" class="special" ng-click="entries.expand=false"> less</a>
-                  </div>
-                </div>
+              <div ng-if="entries.expand">
+                <div ng-repeat="entry in entries">
+                  <div ng-if="!entry.ref">  {{entry.value}}  </div>
+                  <div ng-if="!!entry.ref">  <a href="#/{{entry.ref}}">{{entry.value}}</a>  </div>
+                </div>  <a href="" class="special" ng-click="entries.expand=false"> less</a>
               </div>
             </div>
-          </td><!-- data cells-->
+          </div>
+        </div>
+      </td><!-- /data cells-->
 
-        </tr>
-      </table>
-    <!-- </div> -->
-  </div>
+    </tr>
+  </table>
 </div>
 

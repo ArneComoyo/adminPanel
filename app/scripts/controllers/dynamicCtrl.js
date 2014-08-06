@@ -9,22 +9,20 @@
  */
  app.controller('DynamicCtrl', function ($scope, $routeParams, $firebase, $firebaseSimpleLogin, $filter, FIREBASE_URL, Library, DataLoader, Grouper) {
 
- 	var whichFirebase = function() {
-		$scope.whichFirebase = $routeParams.whichFirebase;
-		if ($scope.whichFirebase !== 'staging'
-			&& $scope.whichFirebase !== 'production'
-			&& $scope.whichFirebase !== 'interns'
-			) {
-		      	$scope.whichFirebase = 'INVALID FIREBASE: '+$routeParams.whichFirebase;
-		      	console.log($scope.whichFirebase);
-		}
- 	} ;
-
 
 	// PROVIDE DATA
 	var provideData = function() {
-		// Get information from URL
 		$scope.firebaseUrl = FIREBASE_URL;
+
+		if (FIREBASE_URL === 'https://test-grouper.firebaseio.com/') {
+			$scope.whichFirebase = 'Production';
+		} if (FIREBASE_URL === 'https://staging-grouper.firebaseio.com/') {
+			$scope.whichFirebase = 'Staging';
+		} if (FIREBASE_URL === 'https://interns-grouper.firebaseio.com/') {
+			$scope.whichFirebase = 'Interns Test FB';
+		}
+
+		// Get information from URL
 		$scope.dataType = $routeParams.dataType;
 		$scope.id = $routeParams.id; // may be undefined
 		$scope.childId = $routeParams.childId; // may be undefined
@@ -214,8 +212,8 @@
 
 			// Helper functions
 			var isEmpty = function(selectedObjects) {
-				console.log(Object.keys(selectedObjects).length);
-				console.log((Object.keys(selectedObjects).length === 0));
+				// console.log(Object.keys(selectedObjects).length);
+				// console.log((Object.keys(selectedObjects).length === 0));
 				return (Object.keys(selectedObjects).length === 0);
 			};
 			var sameObjects = function(selectedObjects, filteredObjects) {
@@ -296,8 +294,6 @@
 				default:
 					console.log('Could not delete: Type unknown!');
 			}
-			//delete $scope.data.objects[object.id];  // TODO do we need this line?
-			
 		});
 		$scope.selectedObjects = {};
 	};

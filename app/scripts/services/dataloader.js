@@ -67,6 +67,9 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 		// This function contains sub-functions, that can acces the scope of this function 
 		// containing values specific to the object that is formatted.
 		var formatObject = function(original, formatted, id) {
+			if (!original) {
+				return;
+			}
 
 			var parentId = id;
 			var objectType = type;
@@ -347,6 +350,10 @@ app.factory('DataLoader', function (FIREBASE_URL, Library, $filter) {
 
 		var loadSingleObject = function() {
 			refOne.on('value', function(snap) {
+				if (!snap.val()) {
+					delete data.objects[id];
+					return;
+				}
 				var object = snap.val();
 				var formatted = { id: id };
 				data.objects[id] = formatted;
